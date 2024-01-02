@@ -6,7 +6,7 @@ using Codes.Application.Codes.Queries.GetCode;
 using Codes.Application.Codes.Queries.SearchCodes;
 using Codes.Domain.Entities;
 using Core.Api.Models;
-using Core.Application.Models;
+using Core.Application.Models.CQRS;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -54,8 +54,9 @@ namespace Codes.Api.Codes
             {
                 return new SearchResponseDTOBase<CodeItemDTO>
                 {
+                    Header = result.Header,
                     Metadata = result.Metadata,
-                    Result = result.Result.Select(
+                    Result = result.Data.Select(
                         resultResult => new CodeItemDTO(
                             Id: resultResult.CodeId,
                             Value: resultResult.Value,
@@ -68,7 +69,7 @@ namespace Codes.Api.Codes
         }
 
         [HttpGet("{id}")]
-        public async Task<CodeDTO> GetCode(int id)
+        public async Task<CodeResponseDTO> GetCode(int id)
         {
             var query = MapQuery(id);
             var result = await _mediator.Send(query);
@@ -84,29 +85,31 @@ namespace Codes.Api.Codes
                 };
             }
 
-            static CodeDTO MapResult(GetCodeResult result)
+            static CodeResponseDTO MapResult(GetCodeResult result)
             {
-                return new CodeDTO(
-                    Value: result.Value,
-                    Text: result.Text,
-                    Text2: result.Text2,
-                    Enabled: result.Enabled,
-                    Metadata: result.Metadata.ConvertAll(
-                        resultMetadatum => new DTOs.Metadata(
-                            Key: resultMetadatum.Key,
-                            Value: resultMetadatum.Value)));
+                return new CodeResponseDTO
+                {
+                    Value = result.Value,
+                    Text = result.Text,
+                    Text2 = result.Text2,
+                    Enabled = result.Enabled,
+                    Metadata = result.Metadata.ConvertAll(
+                        resultMetadatum => new CodeMetadataDTO(
+                        Key: resultMetadatum.Key,
+                        Value: resultMetadatum.Value)),
+                    Header = result.Header
+                };
             }
         }
 
         [HttpPost]
-        public async Task<IResult> AddCode([FromBody] CodeDTO codeDTO)
+        public async Task<IResult> AddCode([FromBody] CodeResponseDTO codeDTO)
         {
             var command = MapCommand(codeDTO);
-            var codeId = await _mediator.Send(command);
-            return TypedResults.Created($"~/codes/{codeId}", codeId);
+            var result = await _mediator.Send(command);
+            return TypedResults.Created($"~/codes/{result.CodeId}", result.CodeId);
 
-
-            static AddCodeCommand MapCommand(CodeDTO newCodeDTO)
+            static AddCodeCommand MapCommand(CodeResponseDTO newCodeDTO)
             {
                 return new AddCodeCommand
                 {
@@ -115,24 +118,23 @@ namespace Codes.Api.Codes
                     Text2 = newCodeDTO.Text2,
                     Enabled = newCodeDTO.Enabled,
                     Metadata = newCodeDTO.Metadata
-                    .ConvertAll(
-                        newCodeDTOMetadatum => new Domain.Entities.Metadata
-                        {
-                            Key = newCodeDTOMetadatum.Key,
-                            Value = newCodeDTOMetadatum.Value
-                        })
+                    ?.ConvertAll(newCodeDTOMetadatum => new Metadata
+                    {
+                        Key = newCodeDTOMetadatum.Key,
+                        Value = newCodeDTOMetadatum.Value
+                    })
                 };
             }
         }
 
         [HttpPut("{id}")]
-        public async Task<IResult> EditCode(int id, [FromBody] CodeDTO codeDTO)
+        public async Task<IResult> EditCode(int id, [FromBody] CodeResponseDTO codeDTO)
         {
             var command = MapRequest(id, codeDTO);
             await _mediator.Send(command);
             return TypedResults.NoContent();
 
-            static EditCodeCommand MapRequest(int id, CodeDTO codeDTO)
+            static EditCodeCommand MapRequest(int id, CodeResponseDTO codeDTO)
             {
                 return new EditCodeCommand
                 {
@@ -141,13 +143,11 @@ namespace Codes.Api.Codes
                     Text = codeDTO.Text,
                     Text2 = codeDTO.Text2,
                     Enabled = codeDTO.Enabled,
-                    Metadata = codeDTO.Metadata
-                    .ConvertAll(
-                        codeDTOMetadatum => new Domain.Entities.Metadata
-                        {
-                            Key = codeDTOMetadatum.Key,
-                            Value = codeDTOMetadatum.Value
-                        })
+                    Metadata = codeDTO.Metadata?.ConvertAll(codeDTOMetadatum => new Metadata
+                    {
+                        Key = codeDTOMetadatum.Key,
+                        Value = codeDTOMetadatum.Value
+                    })
                 };
             }
         }

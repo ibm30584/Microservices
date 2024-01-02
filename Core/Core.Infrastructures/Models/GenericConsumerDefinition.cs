@@ -1,4 +1,4 @@
-﻿using Core.Application.Models;
+﻿using Core.Application.Models.Messaging;
 using MassTransit;
 
 namespace Core.Infrastructures.Models

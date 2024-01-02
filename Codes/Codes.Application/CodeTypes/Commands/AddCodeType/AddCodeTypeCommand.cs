@@ -1,18 +1,17 @@
 ﻿using Codes.Application.Services.Persistence;
 using Codes.Domain.Entities;
-using Core.Application.Exceptions;
-using MediatR;
+using Core.Application.Models.CQRS;
 using Microsoft.EntityFrameworkCore;
 
 namespace Codes.Application.CodeTypes.Commands.AddCodeType
 {
-    public class AddCodeTypeCommand : IRequest<int>
+    public class AddCodeTypeCommand : RequestBase<AddCodeTypeResult>
     {
         public required string Value { get; set; }
         public required string Text { get; set; }
         public string? Text2 { get; set; }
 
-        public class AddCodeTypeHandler : IRequestHandler<AddCodeTypeCommand, int>
+        public class AddCodeTypeHandler : RequestHandlerBase<AddCodeTypeCommand, AddCodeTypeResult>
         {
             private readonly ICodesDbContext _codesDbContext;
 
@@ -20,17 +19,18 @@ namespace Codes.Application.CodeTypes.Commands.AddCodeType
             {
                 _codesDbContext = codesDbContext;
             }
-            public async Task<int> Handle(AddCodeTypeCommand request, CancellationToken cancellationToken)
+            public async override Task<AddCodeTypeResult> Handle(AddCodeTypeCommand request, CancellationToken cancellationToken)
             {
                 var dbCodeType = await GetCodeTypeEntity(request.Value, cancellationToken);
-                BusinessException.Must(
-                    dbCodeType == null,
-                    "There is a code type stored with the same provided value.");
+                if (dbCodeType != null)
+                {
+                    return BadRequest(x => x.Value, "There is a code type stored with the same provided value.");
+                }
 
                 var codeType = CreateCodeTypeEntity(request);
                 await Persist(codeType, cancellationToken);
 
-                return codeType.CodeTypeId;
+                return Ok(new AddCodeTypeResult() { CodeTypeId = codeType.CodeTypeId });
             }
 
             private async Task<CodeType?> GetCodeTypeEntity(string value, CancellationToken cancellationToken)

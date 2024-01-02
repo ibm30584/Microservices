@@ -88,7 +88,6 @@ namespace Core.Api.Middlewares
             var jsonResponse = JsonConvert.SerializeObject(errorResponse);
             await context.Response.WriteAsync(jsonResponse);
         }
-
         private async Task HandleExceptionAsync(HttpContext context, Exception exp)
         {
 

@@ -24,7 +24,7 @@ namespace Core.Application.Exceptions
                 throw new ConfigurationException($"{paramName} is required");
             }
         }
-        public static void ThrowIfNegative([NotNull] int? argument, [CallerArgumentExpression(nameof(argument))] string paramName = null!)
+        public static void ThrowIfNegative(int? argument, [CallerArgumentExpression(nameof(argument))] string paramName = null!)
         {
             if (argument.HasValue && argument < 0)
             {

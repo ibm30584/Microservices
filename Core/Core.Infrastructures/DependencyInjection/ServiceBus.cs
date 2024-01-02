@@ -1,4 +1,4 @@
-﻿using Core.Application.Models;
+﻿using Core.Application.Models.Messaging;
 using Core.Infrastructures.Models;
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection;

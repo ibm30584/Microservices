@@ -1,6 +1,7 @@
 ﻿using Core.Api.Middlewares;
 using Core.Api.Models;
 using Core.Infrastructures.DependencyInjection;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -28,6 +29,9 @@ namespace Core.Api.DependencyInjection
                 services.AddSwagger();
             }
 
+            services.AddHttpContextAccessor();
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(HttpHeaderBinderPipeline<,>));
+
             return logger;
         }
 
@@ -35,11 +39,6 @@ namespace Core.Api.DependencyInjection
             this WebApplication app,
             WebApiOptions webApiOptions)
         {
-            if (webApiOptions.EnableControllers)
-            {
-                app.MapControllers();
-            }
-
             if (webApiOptions.EnableRequestLogging)
             {
                 app.UseRequestLogging();
@@ -49,6 +48,12 @@ namespace Core.Api.DependencyInjection
             {
                 app.UseExceptionMiddleware();
             }
+
+            if (webApiOptions.EnableControllers)
+            {
+                app.MapControllers();
+            }
+             
 
             var swaggerConfig = webApiOptions.SwaggerOptions;
             if (swaggerConfig is not null && swaggerConfig.Enabled)

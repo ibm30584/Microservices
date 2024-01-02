@@ -1,6 +1,6 @@
 ﻿using Core.Application.Exceptions;
 
-namespace Core.Application.Models
+namespace Core.Application.Models.Messaging
 {
     public class MessagingConfig
     {

@@ -1,8 +1,7 @@
 ﻿using Codes.Application.Services.Persistence;
 using Codes.Domain.Entities;
-using Core.Application.Exceptions;
 using Core.Application.Models;
-using MediatR;
+using Core.Application.Models.CQRS;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -15,7 +14,7 @@ namespace Codes.Application.Codes.Queries.SearchCodes
         public string? Text { get; set; }
         public bool? Enabled { get; set; } = true;
 
-        public class SearchCodesHandler : IRequestHandler<SearchCodesQuery, SearchResultBase<Code>>
+        public class SearchCodesHandler : RequestHandlerBase<SearchCodesQuery, SearchResultBase<Code>>
         {
             private readonly ICodesDbContext _codesDbContext;
 
@@ -23,17 +22,20 @@ namespace Codes.Application.Codes.Queries.SearchCodes
             {
                 _codesDbContext = codesDbContext;
             }
-            public async Task<SearchResultBase<Code>> Handle(SearchCodesQuery request, CancellationToken cancellationToken)
+            public override async Task<SearchResultBase<Code>> Handle(SearchCodesQuery request, CancellationToken cancellationToken)
             {
                 var dbCodeType = await GetCodeType(request.CodeTypeValue, cancellationToken);
-                BusinessException.ThrowIfNullAsNotFound(dbCodeType, "There is no code type stored with provided id");
+                if (dbCodeType == null)
+                {
+                    return NotFound(x => x.CodeTypeValue, "There is no code type stored with provided value");
+                }
 
                 var query = CreateQuery(request, dbCodeType.CodeTypeId);
                 var result = await query
                     .Paginate(request.PageNumber, request.PageSize)
                     .ToArrayAsync(cancellationToken);
                 var resultMetadata = await query.GetResultMetadata(request.PageSize, cancellationToken);
-                return MapResult(result, resultMetadata);
+                return Ok(MapResult(result, resultMetadata));
             }
 
 
@@ -82,7 +84,7 @@ namespace Codes.Application.Codes.Queries.SearchCodes
                 return new SearchResultBase<Code>()
                 {
                     Metadata = searchResultMetadata,
-                    Result = result
+                    Data = result
                 };
             }
         }

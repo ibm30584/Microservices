@@ -1,5 +1,5 @@
 ﻿using Core.Application.Exceptions;
-using Core.Application.Models;
+using Core.Application.Models.Messaging;
 using Microsoft.Extensions.Configuration;
 
 namespace Codes.Application.Models

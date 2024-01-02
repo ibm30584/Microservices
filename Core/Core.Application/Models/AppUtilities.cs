@@ -1,5 +1,6 @@
 ﻿
 using Core.Application.Exceptions;
+using Core.Application.Models.CQRS;
 using Microsoft.EntityFrameworkCore;
 
 namespace Core.Application.Models
@@ -18,7 +19,7 @@ namespace Core.Application.Models
             return indices.Any() ? indices.Min() : -1;
         }
 
-        public static CancellationToken CreateCancelationToken(int delayInMilliseconds = AppConstants.CommandMaxExecutionDelayInMiliseconds)
+        public static CancellationToken CreateCancelationToken(int delayInMilliseconds = AppConstants.CommandMaxExecutionDelayInMilliseconds)
         {
             var cancellationTokenSource = new CancellationTokenSource(delayInMilliseconds);
             return cancellationTokenSource.Token;

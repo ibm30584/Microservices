@@ -1,17 +1,18 @@
 ﻿using Codes.Application.Services.Persistence;
 using Codes.Domain.Entities;
 using Core.Application.Exceptions;
+using Core.Application.Models.CQRS;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Codes.Application.Codes.Commands.EnableCode
 {
-    public class EnableCodeCommand : IRequest
+    public class EnableCodeCommand : RequestBase
     {
         public int Id { get; set; }
         public bool Enabled { get; set; }
 
-        public class EnableCodeHandler : IRequestHandler<EnableCodeCommand>
+        public class EnableCodeHandler : RequestHandlerBase<EnableCodeCommand>
         {
             private readonly ICodesDbContext _codesDbContext;
 
@@ -19,13 +20,16 @@ namespace Codes.Application.Codes.Commands.EnableCode
             {
                 _codesDbContext = codesDbContext;
             }
-            public async Task Handle(EnableCodeCommand request, CancellationToken cancellationToken)
+            public override async Task<ResultBase> Handle(EnableCodeCommand request, CancellationToken cancellationToken)
             {
                 var dbCode = await GetCodeEntity(request.Id, cancellationToken);
-                BusinessException.ThrowIfNullAsNotFound(dbCode, "Code does not exist");
+                if (dbCode == null)
+                    return NotFound(x => x.Id, "There is no code stored with provided id");
 
                 MapUpdate(dbCode, request);
                 await Persist(dbCode);
+
+                return Ok();
             }
 
             private async Task Persist(Code dbCode)

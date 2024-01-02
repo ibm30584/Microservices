@@ -1,12 +1,13 @@
 ﻿using Codes.Application.Services.Persistence;
 using Codes.Domain.Entities;
 using Core.Application.Exceptions;
+using Core.Application.Models.CQRS;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Codes.Application.Codes.Commands.AddCode
 {
-    public class AddCodeCommand : IRequest<int>
+    public class AddCodeCommand : RequestBase<AddCodeResult>
     {
         public string CodeType { get; set; } = null!;
         public int Id { get; set; }
@@ -14,9 +15,9 @@ namespace Codes.Application.Codes.Commands.AddCode
         public string Text { get; set; } = null!;
         public string? Text2 { get; set; }
         public bool Enabled { get; set; }
-        public List<Metadata> Metadata { get; set; } = [];
+        public List<Metadata>? Metadata { get; set; } = [];
 
-        public class AddCodeHandler : IRequestHandler<AddCodeCommand, int>
+        public class AddCodeHandler : RequestHandlerBase<AddCodeCommand, AddCodeResult>
         {
             private readonly ICodesDbContext _codesDbContext;
 
@@ -24,17 +25,21 @@ namespace Codes.Application.Codes.Commands.AddCode
             {
                 _codesDbContext = codesDbContext;
             }
-            public async Task<int> Handle(AddCodeCommand request, CancellationToken cancellationToken)
+            public override async Task<AddCodeResult> Handle(AddCodeCommand request, CancellationToken cancellationToken)
             {
                 var dbCode = await GetCodeEntity(request.Value, cancellationToken);
-                BusinessException.Must(
-                    dbCode == null,
-                    "An existing code with the same value.");
+                if (dbCode != null)
+                    return BadRequest(x=>x.Value, "There is an existing code with the same value");
+
 
                 var codeTypeId = await GetCodeTypeId(request.CodeType, cancellationToken);
                 var code = CreateCodeEntity(request, codeTypeId);
                 await Persist(code, cancellationToken);
-                return code.CodeId;
+                
+                return Ok(new AddCodeResult
+                {
+                    CodeId = codeTypeId,
+                });
             }
 
             private async Task<Code?> GetCodeEntity(string value, CancellationToken cancellationToken)

@@ -1,15 +1,14 @@
 ﻿using Codes.Application.Services.Persistence;
 using Codes.Domain.Entities;
-using Core.Application.Exceptions;
-using MediatR;
+using Core.Application.Models.CQRS;
 using Microsoft.EntityFrameworkCore;
 
 namespace Codes.Application.Codes.Queries.GetCode
 {
-    public class GetCodeQuery : IRequest<GetCodeResult>
+    public class GetCodeQuery : RequestBase<GetCodeResult>
     {
         public int CodeID { get; set; }
-        public class GetCodeHandler : IRequestHandler<GetCodeQuery, GetCodeResult>
+        public class GetCodeHandler : RequestHandlerBase<GetCodeQuery, GetCodeResult>
         {
             private readonly ICodesDbContext _codesDbContext;
 
@@ -17,12 +16,10 @@ namespace Codes.Application.Codes.Queries.GetCode
             {
                 _codesDbContext = codesDbContext;
             }
-            public async Task<GetCodeResult> Handle(GetCodeQuery request, CancellationToken cancellationToken)
+            public override async Task<GetCodeResult> Handle(GetCodeQuery request, CancellationToken cancellationToken)
             {
                 var dbCode = await GetCodeEntity(request.CodeID, cancellationToken);
-                BusinessException.ThrowIfNullAsNotFound(dbCode, "Code does not exist");
-
-                return MapResponse(dbCode);
+                return dbCode == null ? NotFound(x => x.CodeID, "There is no code stored with provide id") : Ok(MapResponse(dbCode));
             }
 
             private async Task<Code?> GetCodeEntity(int codeId, CancellationToken cancellationToken)

@@ -1,15 +1,16 @@
 ﻿using Codes.Domain.Entities;
+using Core.Application.Models.CQRS;
 
 namespace Codes.Application.Codes.Queries.GetCode
 {
-    public class GetCodeResult
+    public class GetCodeResult : ResultBase
     {
         public int Id { get; set; }
-        public required string Value { get; set; }
-        public required string Text { get; set; }
+        public string Value { get; set; } = null!;
+        public string Text { get; set; } = null!;
         public string? Text2 { get; set; }
         public bool Enabled { get; set; } = true;
-        public required string CodeTypeText { get; set; }
+        public string CodeTypeText { get; set; } = null!;
         public string? CodeTypeText2 { get; set; }
         public List<Metadata> Metadata { get; set; } = [];
     }

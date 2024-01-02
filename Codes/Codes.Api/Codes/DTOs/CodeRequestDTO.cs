@@ -1,12 +1,9 @@
 ﻿namespace Codes.Api.Codes.DTOs
 {
-    public record CodeDTO(
+    public record CodeRequestDTO(
         string Value,
         string Text,
         string? Text2,
         bool Enabled,
-        List<Metadata> Metadata);
-
-
-    public record Metadata(string Key, string Value);
+        List<CodeMetadataDTO>? Metadata);
 }

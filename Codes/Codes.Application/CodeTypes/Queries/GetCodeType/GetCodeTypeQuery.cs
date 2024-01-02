@@ -1,16 +1,15 @@
 ﻿using Codes.Application.Services.Persistence;
 using Codes.Domain.Entities;
-using Core.Application.Exceptions;
-using MediatR;
+using Core.Application.Models.CQRS;
 using Microsoft.EntityFrameworkCore;
 
 namespace Codes.Application.CodeTypes.Queries.GetCodeType
 {
-    public class GetCodeTypeQuery : IRequest<GetCodeTypeResult>
+    public class GetCodeTypeQuery : RequestBase<GetCodeTypeResult>
     {
         public int CodeTypeId { get; set; }
 
-        public class GetCodeTypeHandler : IRequestHandler<GetCodeTypeQuery, GetCodeTypeResult>
+        public class GetCodeTypeHandler : RequestHandlerBase<GetCodeTypeQuery, GetCodeTypeResult>
         {
             private readonly ICodesDbContext _codesDbContext;
 
@@ -18,13 +17,12 @@ namespace Codes.Application.CodeTypes.Queries.GetCodeType
             {
                 _codesDbContext = codesDbContext;
             }
-            public async Task<GetCodeTypeResult> Handle(GetCodeTypeQuery request, CancellationToken cancellationToken)
+            public override async Task<GetCodeTypeResult> Handle(GetCodeTypeQuery request, CancellationToken cancellationToken)
             {
                 var dbCodeType = await GetCodeTypeEntity(request, cancellationToken);
-                BusinessException.ThrowIfNullAsNotFound(dbCodeType, "This is no code type stored with provided id");
-
-                var result = MapResult(dbCodeType);
-                return result;
+                return dbCodeType == null
+                    ? NotFound(x => x.CodeTypeId, "This is no code type stored with provided id")
+                    : Ok(MapResult(dbCodeType));
             }
 
             private Task<CodeType?> GetCodeTypeEntity(GetCodeTypeQuery request, CancellationToken cancellationToken)

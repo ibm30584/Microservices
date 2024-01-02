@@ -1,19 +1,18 @@
 ﻿using Codes.Application.Services.Persistence;
 using Codes.Domain.Entities;
-using Core.Application.Exceptions;
-using MediatR;
+using Core.Application.Models.CQRS;
 using Microsoft.EntityFrameworkCore;
 
 namespace Codes.Application.CodeTypes.Commands.EditCodeType
 {
-    public class EditCodeTypeCommand : IRequest
+    public class EditCodeTypeCommand : RequestBase
     {
         public required int CodeTypeId { get; set; }
         public required string Value { get; set; } = null!;
         public required string Text { get; set; } = null!;
         public string? Text2 { get; set; }
 
-        public class EditCodeTypeHandler : IRequestHandler<EditCodeTypeCommand>
+        public class EditCodeTypeHandler : RequestHandlerBase<EditCodeTypeCommand>
         {
             private readonly ICodesDbContext _codesDbContext;
 
@@ -21,20 +20,23 @@ namespace Codes.Application.CodeTypes.Commands.EditCodeType
             {
                 _codesDbContext = codesDbContext;
             }
-            public async Task Handle(EditCodeTypeCommand request, CancellationToken cancellationToken)
+            public override async Task<ResultBase> Handle(EditCodeTypeCommand request, CancellationToken cancellationToken)
             {
                 var dbCodeType = await GetExistingCodeTypeEntity(request.CodeTypeId, cancellationToken);
-                BusinessException.ThrowIfNullAsNotFound(
-                    dbCodeType,
-                    "There is no code type stored with provide id");
+                if (dbCodeType == null)
+                {
+                    return NotFound(x => x.CodeTypeId, "There is no code type stored with provide id");
+                }
 
                 var dbOtherCodeTypeWithSameValue = await GetExistingCodeTypeEntity(request.Value, cancellationToken);
-                BusinessException.Must(
-                    dbOtherCodeTypeWithSameValue == null,
-                    "There is an other code type stored with the same value");
+                if (dbOtherCodeTypeWithSameValue != null)
+                {
+                    return BadRequest(x => x.Value, "There is an other code type stored with the same value");
+                }
 
                 MapUpdate(dbCodeType, request);
                 await Persist(dbCodeType, cancellationToken);
+                return Ok();
             }
 
             private async Task<CodeType?> GetExistingCodeTypeEntity(int codeTypeId, CancellationToken cancellationToken)

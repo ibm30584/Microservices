@@ -1,7 +1,7 @@
 ﻿using Codes.Application.Services.Persistence;
 using Codes.Domain.Entities;
 using Core.Application.Models;
-using MediatR;
+using Core.Application.Models.CQRS;
 using Microsoft.EntityFrameworkCore;
 
 namespace Codes.Application.CodeTypes.Queries.SearchCodeTypes
@@ -11,7 +11,7 @@ namespace Codes.Application.CodeTypes.Queries.SearchCodeTypes
         public string? Value { get; set; }
         public string? Text { get; set; }
 
-        public class SearchCodeTypesHandler : IRequestHandler<SearchCodeTypesQuery, SearchResultBase<CodeType>>
+        public class SearchCodeTypesHandler : RequestHandlerBase<SearchCodeTypesQuery, SearchResultBase<CodeType>>
         {
             private readonly ICodesDbContext _codesDbContext;
 
@@ -19,7 +19,7 @@ namespace Codes.Application.CodeTypes.Queries.SearchCodeTypes
             {
                 _codesDbContext = codesDbContext;
             }
-            public async Task<SearchResultBase<CodeType>> Handle(SearchCodeTypesQuery request, CancellationToken cancellationToken)
+            public override async Task<SearchResultBase<CodeType>> Handle(SearchCodeTypesQuery request, CancellationToken cancellationToken)
             {
                 var query = CreateQuery(request);
                 var result = await query
@@ -53,7 +53,7 @@ namespace Codes.Application.CodeTypes.Queries.SearchCodeTypes
             {
                 return new SearchResultBase<CodeType>
                 {
-                    Result = result,
+                    Data = result,
                     Metadata = resultMetadata
                 };
             }

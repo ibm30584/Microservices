@@ -1,22 +1,23 @@
 ﻿using Codes.Application.Services.Persistence;
 using Codes.Domain.Entities;
 using Core.Application.Exceptions;
+using Core.Application.Models.CQRS;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Codes.Application.Codes.Commands.EditCode
 {
 
-    public class EditCodeCommand : IRequest
+    public class EditCodeCommand : RequestBase
     {
         public int CodeId { get; set; }
         public string Value { get; set; } = null!;
         public string Text { get; set; } = null!;
         public string? Text2 { get; set; }
         public bool Enabled { get; set; }
-        public List<Metadata> Metadata { get; set; } = [];
+        public List<Metadata>? Metadata { get; set; }
 
-        public class EditCodeHandler : IRequestHandler<EditCodeCommand>
+        public class EditCodeHandler : RequestHandlerBase<EditCodeCommand>
         {
             private readonly ICodesDbContext _codesDbContext;
 
@@ -24,11 +25,12 @@ namespace Codes.Application.Codes.Commands.EditCode
             {
                 _codesDbContext = codesDbContext;
             }
-            public async Task Handle(EditCodeCommand request, CancellationToken cancellationToken)
+            public override async Task<ResultBase> Handle(EditCodeCommand request, CancellationToken cancellationToken)
             {
                 var dbCode = await GetCodeEntity(request.CodeId, cancellationToken);
-                BusinessException.ThrowIfNullAsNotFound(
-                    dbCode, $"There is no code stored with provided id");
+                if (dbCode == null)
+                    return NotFound(x=>x.CodeId, "There is no code stored with provided id");
+
 
                 var dbOtherCodeWithSameValue = await GetCodeEntity(request.CodeId, request.Value, cancellationToken);
                 BusinessException.Must(
@@ -37,6 +39,8 @@ namespace Codes.Application.Codes.Commands.EditCode
 
                 MapUpdate(dbCode, request);
                 await Persist(dbCode, cancellationToken);
+
+                return Ok();
             }
 
             private async Task<Code?> GetCodeEntity(int codeId, CancellationToken cancellationToken)

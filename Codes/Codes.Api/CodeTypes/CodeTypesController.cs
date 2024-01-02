@@ -7,6 +7,7 @@ using Codes.Application.CodeTypes.Queries.SearchCodeTypes;
 using Codes.Domain.Entities;
 using Core.Api.Models;
 using Core.Application.Models;
+using Core.Application.Models.CQRS;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,6 +29,7 @@ namespace Codes.Api.CodeTypes
         {
             var query = MapQuery(searchCodesRequestDTO);
             var result = await _mediator.Send(query);
+
             var response = MapResponse(result);
             return response;
 
@@ -42,13 +44,12 @@ namespace Codes.Api.CodeTypes
                     PageSize = searchCodesRequestDTO.PageSize
                 };
             }
-
             SearchResponseDTOBase<CodeTypeItemDTO> MapResponse(SearchResultBase<CodeType> result)
             {
                 return new SearchResponseDTOBase<CodeTypeItemDTO>
                 {
                     Metadata = result.Metadata,
-                    Result = result.Result.Select(
+                    Result = result.Data.Select(
                         resultResult => new CodeTypeItemDTO(
                             CodeTypeId: resultResult.CodeTypeId,
                             Value: resultResult.Value,
@@ -66,7 +67,7 @@ namespace Codes.Api.CodeTypes
             var result = await _mediator.Send(query);
             var response = MapResponse(result);
             return response;
-
+            
             GetCodeTypeQuery MapQuery(int id)
             {
                 return new GetCodeTypeQuery
@@ -74,7 +75,6 @@ namespace Codes.Api.CodeTypes
                     CodeTypeId = id
                 };
             }
-
             CodeTypeDTO MapResponse(GetCodeTypeResult result)
             {
                 return new CodeTypeDTO(
@@ -88,11 +88,12 @@ namespace Codes.Api.CodeTypes
         public async Task<IResult> AddCodeType([FromBody] CodeTypeDTO codeTypeDTO)
         {
             var command = MapCommand(codeTypeDTO);
+            var result = await _mediator.Send(command, AppUtilities.CreateCancelationToken());
 
-            var codeTypeId = await _mediator.Send(command, AppUtilities.CreateCancelationToken());
+            await result.EnsureSuccessAsync(HttpContext); 
+            
+            return TypedResults.Created($"~/codetypes/{result.CodeTypeId}", result.CodeTypeId);
 
-            return TypedResults.Created($"~/codetypes/{codeTypeId}", codeTypeId);
- 
             static AddCodeTypeCommand MapCommand(CodeTypeDTO codeTypeDTO)
             {
                 return new AddCodeTypeCommand
@@ -102,7 +103,6 @@ namespace Codes.Api.CodeTypes
                     Text2 = codeTypeDTO.Text2
                 };
             }
-
         }
 
         [HttpPut("{codeTypeId}")]
@@ -110,7 +110,6 @@ namespace Codes.Api.CodeTypes
         {
             var command = MapCommand(codeTypeId, codeTypeDTO);
             await _mediator.Send(command, AppUtilities.CreateCancelationToken());
-
             return TypedResults.NoContent();
 
             static EditCodeTypeCommand MapCommand(int codeTypeId, CodeTypeDTO codeTypeDTO)

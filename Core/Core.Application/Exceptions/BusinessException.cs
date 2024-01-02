@@ -6,9 +6,10 @@ namespace Core.Application.Exceptions
     [Serializable]
     public class BusinessException : Exception
     {
-        public record FieldDetail(string Field, string ErrorCode);
-        public ErrorCodes ErrorCode { get; set; } = ErrorCodes.BadRequest;
-        public List<FieldDetail> Details { get; set; } = [];
+        public record ErrorDetail(string Target, string ErrorCode, string Message);
+        public AppErrorCode ErrorCode { get; set; } = AppErrorCode.BadRequest;
+        public string? Target { get; set; }
+        public List<ErrorDetail> Details { get; set; } = [];
 
         public BusinessException() { }
         public BusinessException(string message) : base(message) { }
@@ -20,7 +21,7 @@ namespace Core.Application.Exceptions
             {
                 throw new BusinessException(message)
                 {
-                    ErrorCode = ErrorCodes.NotFound
+                    ErrorCode = AppErrorCode.NotFound
                 };
             }
         }

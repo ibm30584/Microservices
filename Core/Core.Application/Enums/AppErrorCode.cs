@@ -1,8 +1,8 @@
 ﻿namespace Core.Application.Enums
 {
-    public enum ErrorCodes
+    public enum AppErrorCode
     {
-        None = 0,
+        Ok = 200,
         BadRequest = 400,
         Unauthorized = 401,
         Forbidden = 403,

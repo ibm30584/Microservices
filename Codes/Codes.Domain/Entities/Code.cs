@@ -16,7 +16,7 @@ namespace Codes.Domain.Entities
         public DateTime CreatedDate { get; set; }
 
 
-        public List<Metadata> Metadata { get; set; } = [];
+        public List<Metadata>? Metadata { get; set; }
         public int CodeTypeId { get; set; }
         public CodeType CodeType { get; set; } = null!;
 
