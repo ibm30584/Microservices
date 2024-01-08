@@ -5,27 +5,22 @@ using Core.Application.Models.CQRS;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using System.Globalization;
-using System.Security.Claims;
 
 namespace Core.Api.Middlewares
 {
     public class HttpHeaderBinderPipeline<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-        where TRequest : notnull, RequestBase
+        where TRequest : notnull, IRequestExtended
         where TResponse : ResultBase
     {
         private readonly HttpContext _httpContext;
-        private readonly ClaimsPrincipal _claimsPrincipal;
 
         public HttpHeaderBinderPipeline(
-            IHttpContextAccessor httpContextAccessor,
-            ClaimsPrincipal claimsPrincipal)
+            IHttpContextAccessor httpContextAccessor)
         {
             StartupException.ThrowIfNull(httpContextAccessor);
             StartupException.ThrowIfNull(httpContextAccessor.HttpContext);
-            StartupException.ThrowIfNull(claimsPrincipal);
 
             _httpContext = httpContextAccessor.HttpContext;
-            _claimsPrincipal = claimsPrincipal;
         }
 
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
@@ -38,7 +33,12 @@ namespace Core.Api.Middlewares
 
             BusinessException.ThrowIfNull(result, "Result must not be null");
             BusinessException.ThrowIfNull(result.Header, "Result's header must not be null");
-            
+            if (result.Header.StatusCode != AppStatusCode.Ok)
+            {
+                _httpContext.Response.StatusCode = (int)result.Header.StatusCode;
+            }
+            _httpContext.Response.Headers["correlationId"] = _httpContext.TraceIdentifier;
+
             return result;
         }
 
@@ -47,7 +47,7 @@ namespace Core.Api.Middlewares
             return new RequestHeader
             {
                 CorrelationId = GetCorrelationId(_httpContext),
-                User = _claimsPrincipal,
+                User = _httpContext.User,
                 Language = language == AppConstants.ArabicLanguage ? AppLanguage.Arabic : AppLanguage.English,
             };
         }

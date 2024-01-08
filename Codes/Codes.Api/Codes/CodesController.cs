@@ -26,7 +26,7 @@ namespace Codes.Api.Codes
         }
 
         [HttpGet("/codetypes/{codeType}/codes")]
-        public async Task<SearchResponseDTOBase<CodeItemDTO>> SearchCodes(
+        public async Task<SearchResponseDTO<CodeItemDTO>> SearchCodes(
             [FromHeader] string acceptLanguage,
             [FromRoute] string codeType,
             [FromQuery] SearchCodesRequestDTO searchCodesRequestDTO)
@@ -50,26 +50,27 @@ namespace Codes.Api.Codes
                 };
             }
 
-            static SearchResponseDTOBase<CodeItemDTO> MapResult(SearchResultBase<Code> result)
+            static SearchResponseDTO<CodeItemDTO> MapResult(SearchResult<Code> result)
             {
-                return new SearchResponseDTOBase<CodeItemDTO>
+                return new SearchResponseDTO<CodeItemDTO>
                 {
                     Header = result.Header,
-                    Metadata = result.Metadata,
-                    Result = result.Data.Select(
-                        resultResult => new CodeItemDTO(
-                            Id: resultResult.CodeId,
-                            Value: resultResult.Value,
-                            Text: resultResult.Text,
-                            Text2: resultResult.Text2,
-                            Enabled: resultResult.Enabled))
-                    .ToArray()
+                    Body = result.Body != null
+                        ? new SearchResponseBodyDTO<CodeItemDTO>(
+                            Metadata: result.Body.Metadata,
+                            Data: result.Body.Data.Select(resultBodyDatum => new CodeItemDTO(
+                                CodeId: resultBodyDatum.CodeId,
+                                Value: resultBodyDatum.Value,
+                                Text: resultBodyDatum.Text,
+                                Text2: resultBodyDatum.Text2,
+                                Enabled: resultBodyDatum.Enabled))
+                            .ToArray()) : null
                 };
             }
         }
 
         [HttpGet("{id}")]
-        public async Task<CodeResponseDTO> GetCode(int id)
+        public async Task<ResponseDTOBase<CodeResponseDTO>> GetCode(int id)
         {
             var query = MapQuery(id);
             var result = await _mediator.Send(query);
@@ -85,56 +86,73 @@ namespace Codes.Api.Codes
                 };
             }
 
-            static CodeResponseDTO MapResult(GetCodeResult result)
+            static ResponseDTOBase<CodeResponseDTO> MapResult(ResultBase<GetCodeResult> result)
             {
-                return new CodeResponseDTO
+                return new ResponseDTOBase<CodeResponseDTO>
                 {
-                    Value = result.Value,
-                    Text = result.Text,
-                    Text2 = result.Text2,
-                    Enabled = result.Enabled,
-                    Metadata = result.Metadata.ConvertAll(
-                        resultMetadatum => new CodeMetadataDTO(
-                        Key: resultMetadatum.Key,
-                        Value: resultMetadatum.Value)),
-                    Header = result.Header
+                    Header = result.Header,
+                    Body = result.Body != null ? new CodeResponseDTO
+                    {
+                        Value = result.Body.Value,
+                        Text = result.Body.Text,
+                        Text2 = result.Body.Text2,
+                        Enabled = result.Body.Enabled,
+                        Metadata = result.Body.Metadata.ConvertAll(
+                            resultBodyMetadatum => new CodeMetadataDTO(
+                                Key: resultBodyMetadatum.Key,
+                                Value: resultBodyMetadatum.Value))
+                    } : null
                 };
             }
         }
 
-        [HttpPost]
-        public async Task<IResult> AddCode([FromBody] CodeResponseDTO codeDTO)
+        [HttpPost("/codetypes/{codeType}/codes")]
+        public async Task<ResponseDTOBase<AddCodeResponseDTO>> AddCode(
+            [FromRoute] string codeType,
+            [FromBody] CodeRequestDTO codeDTO)
         {
-            var command = MapCommand(codeDTO);
+            var command = MapCommand(codeType, codeDTO);
             var result = await _mediator.Send(command);
-            return TypedResults.Created($"~/codes/{result.CodeId}", result.CodeId);
+            return MapResponse(result);
 
-            static AddCodeCommand MapCommand(CodeResponseDTO newCodeDTO)
+            static AddCodeCommand MapCommand(string codeType, CodeRequestDTO newCodeDTO)
             {
                 return new AddCodeCommand
                 {
+                    CodeType = codeType,
                     Value = newCodeDTO.Value,
                     Text = newCodeDTO.Text,
                     Text2 = newCodeDTO.Text2,
                     Enabled = newCodeDTO.Enabled,
-                    Metadata = newCodeDTO.Metadata
-                    ?.ConvertAll(newCodeDTOMetadatum => new Metadata
+                    Metadata = newCodeDTO.Metadata?.ConvertAll(newCodeDTOMetadatum => new Metadata
                     {
                         Key = newCodeDTOMetadatum.Key,
                         Value = newCodeDTOMetadatum.Value
                     })
                 };
             }
+
+            static ResponseDTOBase<AddCodeResponseDTO> MapResponse(ResultBase<AddCodeResult> result)
+            {
+                return new ResponseDTOBase<AddCodeResponseDTO>
+                {
+                    Header = result.Header,
+                    Body = result.Body != null ? new AddCodeResponseDTO
+                    {
+                        CodeId = result.Body.CodeId
+                    } : null
+                };
+            }
         }
 
         [HttpPut("{id}")]
-        public async Task<IResult> EditCode(int id, [FromBody] CodeResponseDTO codeDTO)
+        public async Task<ResponseDTOBase> EditCode(int id, [FromBody] CodeRequestDTO codeDTO)
         {
             var command = MapRequest(id, codeDTO);
-            await _mediator.Send(command);
-            return TypedResults.NoContent();
+            var result = await _mediator.Send(command);
+            return MapResponse(result);
 
-            static EditCodeCommand MapRequest(int id, CodeResponseDTO codeDTO)
+            static EditCodeCommand MapRequest(int id, CodeRequestDTO codeDTO)
             {
                 return new EditCodeCommand
                 {
@@ -143,21 +161,30 @@ namespace Codes.Api.Codes
                     Text = codeDTO.Text,
                     Text2 = codeDTO.Text2,
                     Enabled = codeDTO.Enabled,
-                    Metadata = codeDTO.Metadata?.ConvertAll(codeDTOMetadatum => new Metadata
-                    {
-                        Key = codeDTOMetadatum.Key,
-                        Value = codeDTOMetadatum.Value
-                    })
+                    Metadata = codeDTO.Metadata?.ConvertAll(
+                        codeDTOMetadatum => new Metadata
+                        {
+                            Key = codeDTOMetadatum.Key,
+                            Value = codeDTOMetadatum.Value
+                        })
+                };
+            }
+
+            static ResponseDTOBase MapResponse(ResultBase result)
+            {
+                return new ResponseDTOBase
+                {
+                    Header = result.Header
                 };
             }
         }
 
         [HttpPut("{id}/enable")]
-        public async Task<IResult> EnableCode(int id)
+        public async Task<ResponseDTOBase> EnableCode(int id)
         {
             var command = MapCommand(id);
-            await _mediator.Send(command);
-            return TypedResults.NoContent();
+            var result = await _mediator.Send(command);
+            return MapResponse(result);
 
             static EnableCodeCommand MapCommand(int id)
             {
@@ -167,15 +194,23 @@ namespace Codes.Api.Codes
                     Enabled = true,
                 };
             }
+
+            static ResponseDTOBase MapResponse(ResultBase result)
+            {
+                return new ResponseDTOBase
+                {
+                    Header = result.Header
+                };
+            }
         }
 
         [HttpPut("{id}/disable")]
-        public async Task<IResult> DisableCode(int id)
+        public async Task<ResponseDTOBase> DisableCode(int id)
         {
             var command = MapCommand(id);
-            await _mediator.Send(command);
+            var result = await _mediator.Send(command);
 
-            return TypedResults.NoContent();
+            return MapResponse(result);
 
             static EnableCodeCommand MapCommand(int id)
             {
@@ -183,6 +218,14 @@ namespace Codes.Api.Codes
                 {
                     Id = id,
                     Enabled = false,
+                };
+            }
+
+            static ResponseDTOBase MapResponse(ResultBase result)
+            {
+                return new ResponseDTOBase
+                {
+                    Header = result.Header
                 };
             }
         }

@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Codes.Application.CodeTypes.Queries.GetCodeType
 {
-    public class GetCodeTypeQuery : RequestBase<GetCodeTypeResult>
+    public class GetCodeTypeQuery : RequestBase<ResultBase<GetCodeTypeResult>>
     {
         public int CodeTypeId { get; set; }
 
-        public class GetCodeTypeHandler : RequestHandlerBase<GetCodeTypeQuery, GetCodeTypeResult>
+        public class GetCodeTypeHandler : RequestHandlerBase<GetCodeTypeQuery, ResultBase<GetCodeTypeResult>>
         {
             private readonly ICodesDbContext _codesDbContext;
 
@@ -17,7 +17,7 @@ namespace Codes.Application.CodeTypes.Queries.GetCodeType
             {
                 _codesDbContext = codesDbContext;
             }
-            public override async Task<GetCodeTypeResult> Handle(GetCodeTypeQuery request, CancellationToken cancellationToken)
+            public override async Task<ResultBase<GetCodeTypeResult>> Handle(GetCodeTypeQuery request, CancellationToken cancellationToken)
             {
                 var dbCodeType = await GetCodeTypeEntity(request, cancellationToken);
                 return dbCodeType == null

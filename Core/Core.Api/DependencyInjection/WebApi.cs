@@ -1,10 +1,13 @@
 ﻿using Core.Api.Middlewares;
 using Core.Api.Models;
+using Core.Application.Models;
 using Core.Infrastructures.DependencyInjection;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Text.Json.Serialization;
 
 namespace Core.Api.DependencyInjection
 {
@@ -20,7 +23,12 @@ namespace Core.Api.DependencyInjection
 
             if (webApiOptions.EnableControllers)
             {
-                services.AddControllers();
+                services.AddControllers()
+                    .AddJsonOptions(options =>
+                    {
+                        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+                        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                    });
             }
 
             var swaggerConfig = webApiOptions.SwaggerOptions;
@@ -32,6 +40,7 @@ namespace Core.Api.DependencyInjection
             services.AddHttpContextAccessor();
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(HttpHeaderBinderPipeline<,>));
 
+            AppConstants.CurrentLanguage = webApiOptions.DefaultLanguage;
             return logger;
         }
 
@@ -53,7 +62,7 @@ namespace Core.Api.DependencyInjection
             {
                 app.MapControllers();
             }
-             
+
 
             var swaggerConfig = webApiOptions.SwaggerOptions;
             if (swaggerConfig is not null && swaggerConfig.Enabled)

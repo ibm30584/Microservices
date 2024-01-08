@@ -14,7 +14,7 @@ namespace Codes.Application.Codes.Queries.SearchCodes
         public string? Text { get; set; }
         public bool? Enabled { get; set; } = true;
 
-        public class SearchCodesHandler : RequestHandlerBase<SearchCodesQuery, SearchResultBase<Code>>
+        public class SearchCodesHandler : RequestHandlerBase<SearchCodesQuery, SearchResult<Code>>
         {
             private readonly ICodesDbContext _codesDbContext;
 
@@ -22,7 +22,7 @@ namespace Codes.Application.Codes.Queries.SearchCodes
             {
                 _codesDbContext = codesDbContext;
             }
-            public override async Task<SearchResultBase<Code>> Handle(SearchCodesQuery request, CancellationToken cancellationToken)
+            public override async Task<SearchResult<Code>> Handle(SearchCodesQuery request, CancellationToken cancellationToken)
             {
                 var dbCodeType = await GetCodeType(request.CodeTypeValue, cancellationToken);
                 if (dbCodeType == null)
@@ -79,12 +79,11 @@ namespace Codes.Application.Codes.Queries.SearchCodes
                 return queryByText.Union(queryByText2);
             }
 
-            private static SearchResultBase<Code> MapResult(Code[] result, SearchResultMetadata searchResultMetadata)
+            private static SearchResult<Code> MapResult(Code[] data, SearchResultMetadata metadata)
             {
-                return new SearchResultBase<Code>()
+                return new SearchResult<Code>()
                 {
-                    Metadata = searchResultMetadata,
-                    Data = result
+                    Body = new SearchResultBody<Code>(metadata, data)
                 };
             }
         }

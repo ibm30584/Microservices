@@ -1,5 +1,5 @@
-using Audit.Application.Models;
 using Audit.Application.DependencyInjection;
+using Audit.Application.Models;
 using Audit.Infrastructures.DependencyInjection;
 using Core.Api.DependencyInjection;
 using Core.Api.Models;
@@ -7,7 +7,6 @@ using Core.Infrastructures.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 ILogger logger = null!;
-
 
 try
 {
@@ -22,14 +21,15 @@ try
         SwaggerOptions = new SwaggerOptions
         {
             Enabled = true,
-            Route = "codes-swagger"
+            Route = "audit-api"
         }
     };
     var auditConfiguration = AuditConfiguration.CreateFrom(builder.Configuration);
 
     logger = builder.Services.AddWebApi(webApiOptions);
     builder.Services.AddApplication();
-    builder.Services.AddInfrastructure(auditConfiguration);
+    builder.Services.AddInfrastructure(auditConfiguration,
+        typeof(Program).Assembly);
 
     var app = builder.Build();
     app.UseWebApi(webApiOptions);

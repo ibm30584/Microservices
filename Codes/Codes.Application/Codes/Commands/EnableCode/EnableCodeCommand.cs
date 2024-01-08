@@ -1,8 +1,6 @@
 ﻿using Codes.Application.Services.Persistence;
 using Codes.Domain.Entities;
-using Core.Application.Exceptions;
 using Core.Application.Models.CQRS;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Codes.Application.Codes.Commands.EnableCode
@@ -24,7 +22,9 @@ namespace Codes.Application.Codes.Commands.EnableCode
             {
                 var dbCode = await GetCodeEntity(request.Id, cancellationToken);
                 if (dbCode == null)
+                {
                     return NotFound(x => x.Id, "There is no code stored with provided id");
+                }
 
                 MapUpdate(dbCode, request);
                 await Persist(dbCode);

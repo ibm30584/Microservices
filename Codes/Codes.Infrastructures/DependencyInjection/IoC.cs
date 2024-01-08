@@ -6,17 +6,23 @@ using Codes.Infrastructures.Services.Persistence;
 using Core.Infrastructures.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace Codes.Infrastructures.DependencyInjection
 {
     public static class IoC
     {
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services, CodesConfiguration codesConfiguration)
+        public static IServiceCollection AddInfrastructure(
+            this IServiceCollection services, 
+            CodesConfiguration codesConfiguration,
+            Assembly consumersAssembly)
         {
             services
                 .AddPersistence(codesConfiguration.ConnectionString)
                 .AddAudit();
-            services.AddServiceBus(codesConfiguration.Messaging);
+            services.AddServiceBus(
+                codesConfiguration.Messaging,
+                consumersAssembly);
 
             return services;
         }

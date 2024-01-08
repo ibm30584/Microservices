@@ -1,15 +1,24 @@
 {
-  "$schema": "http://json.schemastore.org/launchsettings.json",
   "profiles": {
     "http": {
       "commandName": "Project",
-      "dotnetRunMessages": true,
       "launchBrowser": true,
-      "launchUrl": "codes-swagger",
-      "applicationUrl": "http://localhost:5092",
+      "launchUrl": "codes-api",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5092"
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/codes-api",
+      "environmentVariables": {
+        "ASPNETCORE_HTTP_PORTS": "8080"
+      },
+      "publishAllPorts": true
     }
-  }
+  },
+  "$schema": "http://json.schemastore.org/launchsettings.json"
 }

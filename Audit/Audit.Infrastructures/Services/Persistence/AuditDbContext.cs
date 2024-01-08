@@ -15,5 +15,7 @@ namespace Audit.Infrastructures.Services.Persistence
         }
 
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<Event> Events { get; set; }
+        public DbSet<Service> Services { get; set; }
     }
 }

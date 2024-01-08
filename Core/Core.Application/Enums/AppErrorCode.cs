@@ -1,6 +1,6 @@
 ﻿namespace Core.Application.Enums
 {
-    public enum AppErrorCode
+    public enum AppStatusCode
     {
         Ok = 200,
         BadRequest = 400,

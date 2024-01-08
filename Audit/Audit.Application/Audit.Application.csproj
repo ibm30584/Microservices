@@ -11,9 +11,4 @@
     <ProjectReference Include="..\Audit.Domain\Audit.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Audit\Commands\" />
-    <Folder Include="Audit\Queries\" />
-  </ItemGroup>
-
 </Project>

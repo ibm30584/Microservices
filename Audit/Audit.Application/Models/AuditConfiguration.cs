@@ -8,17 +8,17 @@ namespace Audit.Application.Models
     {
         public string ConnectionString { get; set; } = null!;
         public MessagingConfig Messaging { get; set; } = null!;
-        public static AuditConfiguration CreateFrom(IConfiguration configuration)
+        public static AuditConfiguration CreateFrom(IConfiguration configuration, params string[] requiredConsumers)
         {
-            var codesConfiguration = new AuditConfiguration();
+            var auditConfiguration = new AuditConfiguration();
             configuration
-                .GetSection("CodesConfiguration")
-                .Bind(codesConfiguration);
+                .GetSection("AuditConfiguration")
+                .Bind(auditConfiguration);
 
-            ConfigurationException.ThrowIfNull(codesConfiguration, "AuditConfiguration");
-            ConfigurationException.ThrowIfNullOrWhiteSpace(codesConfiguration.ConnectionString);
-            MessagingConfig.Validate(codesConfiguration.Messaging);
-            return codesConfiguration;
+            ConfigurationException.ThrowIfNull(auditConfiguration, "AuditConfiguration");
+            ConfigurationException.ThrowIfNullOrWhiteSpace(auditConfiguration.ConnectionString);
+            MessagingConfig.Validate(auditConfiguration.Messaging, requiredConsumers);
+            return auditConfiguration;
         }
     }
 }

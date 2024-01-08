@@ -1,8 +1,6 @@
-﻿using Core.Application.Models.CQRS;
-
-namespace Codes.Application.CodeTypes.Queries.GetCodeType
+﻿namespace Codes.Application.CodeTypes.Queries.GetCodeType
 {
-    public class GetCodeTypeResult : ResultBase
+    public class GetCodeTypeResult
     {
         public int CodeTypeId { get; set; }
         public string Value { get; set; } = null!;

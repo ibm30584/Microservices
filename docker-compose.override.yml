@@ -1,0 +1,22 @@
+version: '3.4'
+
+services:
+  codes.api:
+    depends_on:
+    - audit.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+    ports:
+      - 8080
+    # scale: 3
+    
+
+  audit.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+    ports:
+      - 8080
+    scale: 2
+

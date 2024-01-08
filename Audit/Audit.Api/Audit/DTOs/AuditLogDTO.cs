@@ -1,9 +1,14 @@
-﻿namespace Codes.Api.Codes.DTOs
+﻿namespace Audit.Api.Audit.DTOs
 {
     public record AuditLogDTO(
-        string Description,
-        List<Metadata> Metadata);
+        int AuditLogId,
+        DateTime CreatedDate,
+        string CreatedByUserId ,
+        string ServiceText ,
+        string EventText,
+        string EventEntityId,
+        List<AuditLogMetadata>? Metadata);
 
 
-    public record Metadata(string Key, string Value);
+    public record AuditLogMetadata(string Key, string Value);
 }

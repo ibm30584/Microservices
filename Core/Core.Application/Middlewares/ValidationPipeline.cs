@@ -1,5 +1,4 @@
 ﻿using Core.Application.Enums;
-using Core.Application.Models;
 using Core.Application.Models.CQRS;
 using FluentValidation;
 using MediatR;
@@ -7,7 +6,7 @@ using MediatR;
 namespace Core.Application.Middlewares
 {
     public class ValidationPipeline<TRequest, TResult> : IPipelineBehavior<TRequest, TResult>
-        where TRequest : notnull, RequestBase
+        where TRequest : notnull, IRequestExtended
         where TResult : ResultBase, new()
     {
         private readonly IEnumerable<IValidator<TRequest>> _validators;
@@ -34,7 +33,7 @@ namespace Core.Application.Middlewares
                 {
                     Header = new ResultHeader
                     {
-                        ErrorCode = AppErrorCode.BadRequest,
+                        StatusCode = AppStatusCode.BadRequest,
                         ErrorMessage = "Request validation failed",
                         Errors = failures
                             .Select(x => new ResultError(x.ErrorCode, x.ErrorMessage, x.PropertyName))

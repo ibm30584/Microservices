@@ -1,20 +1,18 @@
-﻿using Core.Domain.Entities;
+﻿using Audit.Domain.Enums;
+using Core.Domain.Entities;
 
 namespace Audit.Domain.Entities
 {
-    public class AuditLog : ITrackCreatedEntity, ITrackUpdatedEntity
+    public class AuditLog
     {
         public int AuditLogId { get; set; }
-        public required string Description { get; set; }
-
-        public string CreatedByUserId { get; set; } = null!;
-        public string? UpdatedUserId { get; set; }
-        public DateTime? UpdatedDate { get; set; }
         public DateTime CreatedDate { get; set; }
-
-        public List<Metadata> Metadata { get; set; } = [];
-
+        public string CreatedByUserId { get; set; } = null!;
+        public AuditService ServiceId { get; set; }
+        public AuditEvent EventId { get; set; }
+        public string EventEntityId { get; set; } = null!;
+        public List<AuditMetadata>? Metadata { get; set; }
+        public Event Event { get; set; } = null!;
+        public Service Service { get; set; } = null!;
     }
-
-    public record Metadata(string Key, string Value);
 }

@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "Docker Compose": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "composeLaunchAction": "LaunchBrowser",
+      "composeLaunchServiceName": "codes.api",
+      "composeLaunchUrl": "{Scheme}://localhost:{ServicePort}/codes-api",
+      "serviceActions": {
+        "codes.api": "StartDebugging",
+        "audit.api": "StartDebugging",
+        "rabbitmq": "StartWithoutDebugging"
+      }
+    }
+  }
+}

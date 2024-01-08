@@ -1,8 +1,6 @@
-﻿using Core.Api.Models;
-
-namespace Codes.Api.Codes.DTOs
+﻿namespace Codes.Api.Codes.DTOs
 {
-    public class CodeResponseDTO : ResponseDTOBase
+    public class CodeResponseDTO
     {
         public string Value { get; set; } = null!;
         public string Text { get; set; } = null!;

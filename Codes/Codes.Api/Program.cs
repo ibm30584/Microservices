@@ -22,14 +22,16 @@ try
         SwaggerOptions = new SwaggerOptions
         {
             Enabled = true,
-            Route = "codes-swagger"
+            Route = "codes-api"
         }
     };
     var codesConfiguration = CodesConfiguration.CreateFrom(builder.Configuration);
 
     logger = builder.Services.AddWebApi(webApiOptions);
     builder.Services.AddApplication();
-    builder.Services.AddInfrastructure(codesConfiguration);
+    builder.Services.AddInfrastructure(
+        codesConfiguration,
+        typeof(Program).Assembly);
 
     var app = builder.Build();
     app.UseWebApi(webApiOptions);

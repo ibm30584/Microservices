@@ -3,12 +3,10 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Serilog.Context;
 using System.Net;
 
 namespace Core.Api.Middlewares
 {
-    // You may need to install the Microsoft.AspNetCore.Http.Abstractions package into your project
     public class ExceptionMiddleware
     {
         private readonly RequestDelegate _next;
@@ -45,7 +43,7 @@ namespace Core.Api.Middlewares
         private async Task HandleBusinessExceptionAsync(HttpContext context, BusinessException exp)
         {
             _logger.LogError(
-                "Business error occurred : {businessError}", 
+                "Business error occurred : {businessError}",
                 exp.Message);
 
             // Set the response status code
@@ -56,13 +54,22 @@ namespace Core.Api.Middlewares
             // Create a custom error response
             var errorResponse = new
             {
-                CorrelationId = context.TraceIdentifier,
-                context.Response.StatusCode,
-                exp.Message
+                Header = new
+                {
+                    ErrorCode = context.Response.StatusCode,
+                    ErrorMessage = exp.Message,
+                    exp.Target,
+                    exp.Errors
+                }
             };
+             
+            var jsonResponse = JsonConvert.SerializeObject(errorResponse,
+                new JsonSerializerSettings
+                {
 
-            // Serialize the error response and write it to the response
-            var jsonResponse = JsonConvert.SerializeObject(errorResponse);
+                    NullValueHandling = NullValueHandling.Ignore,
+                    ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()
+                });
             await context.Response.WriteAsync(jsonResponse);
         }
         private async Task HandleProcessingExceptionAsync(HttpContext context, ProcessingException exp)
@@ -79,13 +86,19 @@ namespace Core.Api.Middlewares
             // Create a custom error response
             var errorResponse = new
             {
-                CorrelationId = context.TraceIdentifier,
-                context.Response.StatusCode,
-                exp.Message
+                Header = new
+                {
+                    ErrorCode = context.Response.StatusCode,
+                    ErrorMessage = exp.Message
+                }
             };
 
-            // Serialize the error response and write it to the response
-            var jsonResponse = JsonConvert.SerializeObject(errorResponse);
+            var jsonResponse = JsonConvert.SerializeObject(errorResponse,
+                 new JsonSerializerSettings
+                 {
+                     NullValueHandling = NullValueHandling.Ignore,
+                     ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()
+                 });
             await context.Response.WriteAsync(jsonResponse);
         }
         private async Task HandleExceptionAsync(HttpContext context, Exception exp)
@@ -103,13 +116,20 @@ namespace Core.Api.Middlewares
             // Create a custom error response
             var errorResponse = new
             {
-                CorrelationId = context.TraceIdentifier,
-                context.Response.StatusCode,
-                exp.Message
+                Header = new
+                {
+                    ErrorCode = context.Response.StatusCode,
+                    ErrorMessage = exp.Message
+                }
             };
 
-            // Serialize the error response and write it to the response
-            var jsonResponse = JsonConvert.SerializeObject(errorResponse);
+            var jsonResponse = JsonConvert.SerializeObject(errorResponse,
+                 new JsonSerializerSettings
+                 {
+
+                     NullValueHandling = NullValueHandling.Ignore,
+                     ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()
+                 });
             await context.Response.WriteAsync(jsonResponse);
         }
     }

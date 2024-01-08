@@ -1,0 +1,31 @@
+#See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+USER app
+WORKDIR /app
+EXPOSE 8080
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+COPY ["Audit/Audit.Api/Audit.Api.csproj", "Audit/Audit.Api/"]
+COPY ["Core/Core.Api/Core.Api.csproj", "Core/Core.Api/"]
+COPY ["Core/Core.Infrastructures/Core.Infrastructures.csproj", "Core/Core.Infrastructures/"]
+COPY ["Core/Core.Application/Core.Application.csproj", "Core/Core.Application/"]
+COPY ["Core/Core.Domain/Core.Domain.csproj", "Core/Core.Domain/"]
+COPY ["Audit/Audit.Infrastructures/Audit.Infrastructures.csproj", "Audit/Audit.Infrastructures/"]
+COPY ["Audit/Audit.Application/Audit.Application.csproj", "Audit/Audit.Application/"]
+COPY ["Audit/Audit.Domain/Audit.Domain.csproj", "Audit/Audit.Domain/"]
+RUN dotnet restore "./Audit/Audit.Api/./Audit.Api.csproj"
+COPY . .
+WORKDIR "/src/Audit/Audit.Api"
+RUN dotnet build "./Audit.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "./Audit.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "Audit.Api.dll"]

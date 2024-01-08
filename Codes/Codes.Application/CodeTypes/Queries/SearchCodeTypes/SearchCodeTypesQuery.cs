@@ -11,7 +11,7 @@ namespace Codes.Application.CodeTypes.Queries.SearchCodeTypes
         public string? Value { get; set; }
         public string? Text { get; set; }
 
-        public class SearchCodeTypesHandler : RequestHandlerBase<SearchCodeTypesQuery, SearchResultBase<CodeType>>
+        public class SearchCodeTypesHandler : RequestHandlerBase<SearchCodeTypesQuery, SearchResult<CodeType>>
         {
             private readonly ICodesDbContext _codesDbContext;
 
@@ -19,14 +19,14 @@ namespace Codes.Application.CodeTypes.Queries.SearchCodeTypes
             {
                 _codesDbContext = codesDbContext;
             }
-            public override async Task<SearchResultBase<CodeType>> Handle(SearchCodeTypesQuery request, CancellationToken cancellationToken)
+            public override async Task<SearchResult<CodeType>> Handle(SearchCodeTypesQuery request, CancellationToken cancellationToken)
             {
                 var query = CreateQuery(request);
-                var result = await query
+                var data = await query
                     .Paginate(request.PageNumber, request.PageSize)
                     .ToArrayAsync(cancellationToken);
-                var resultMetadata = await query.GetResultMetadata(request.PageSize, cancellationToken);
-                return MapResult(result, resultMetadata);
+                var metadata = await query.GetResultMetadata(request.PageSize, cancellationToken);
+                return Ok(MapResult(data, metadata));
             }
 
             private IQueryable<CodeType> CreateQuery(SearchCodeTypesQuery request)
@@ -48,13 +48,11 @@ namespace Codes.Application.CodeTypes.Queries.SearchCodeTypes
                 return queryByText.Union(queryByText2);
             }
 
-
-            private static SearchResultBase<CodeType> MapResult(CodeType[] result, SearchResultMetadata resultMetadata)
+            private static SearchResult<CodeType> MapResult(CodeType[] data, SearchResultMetadata metadata)
             {
-                return new SearchResultBase<CodeType>
+                return new SearchResult<CodeType>()
                 {
-                    Data = result,
-                    Metadata = resultMetadata
+                    Body = new SearchResultBody<CodeType>(metadata, data)
                 };
             }
         }

@@ -9,7 +9,7 @@ namespace Core.Infrastructures.Models
     {
         public static MessagingConsumerConfig? Configuration { get; set; }
 
-        public GenericConsumerDefinition(IConsumerConfigurator<TConsumer> consumerConfigurator)
+        protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator, IConsumerConfigurator<TConsumer> consumerConfigurator, IRegistrationContext context)
         {
             if (Configuration == null)
             {
@@ -33,6 +33,8 @@ namespace Core.Infrastructures.Models
                     retryIntervalsInSeconds
                     .Select(i => TimeSpan.FromSeconds(i))
                     .ToArray()));
+
+            base.ConfigureConsumer(endpointConfigurator, consumerConfigurator, context);
         }
     }
 }

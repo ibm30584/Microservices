@@ -28,6 +28,28 @@ namespace Core.Infrastructures.DependencyInjection
 
             return logger;
         }
+        public static NativeLogger AddLogging(this HostApplicationBuilder builder, string applicationName, IConfiguration configuration)
+        {
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(configuration)
+                .CreateLogger();
+
+            builder.Logging
+                .ClearProviders()
+                .AddSerilog(Log.Logger);
+
+
+            var loggerFactory = LoggerFactory.Create(
+                builder =>
+                {
+                    builder.AddSerilog(Log.Logger);
+                }); 
+
+            // Get an instance of ILogger<T>
+            var logger = loggerFactory.CreateLogger(applicationName);
+
+            return logger;
+        }
         public static void UseRequestLogging(this IApplicationBuilder app)
         {
             app.UseSerilogRequestLogging();

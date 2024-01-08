@@ -8,16 +8,16 @@ namespace Core.Infrastructures.DependencyInjection
 {
     public static class ServiceBus
     {
-        public static IServiceCollection AddServiceBus(this IServiceCollection services, MessagingConfig messagingConfiguration)
+        public static IServiceCollection AddServiceBus(this IServiceCollection services, MessagingConfig messagingConfiguration, Assembly consumersAssembly)
         {
             //docker run -d --name rabbitmq-container -p 5672:5672 -p 15672:15672 rabbitmq:management
             services.AddMassTransit(x =>
             {
-                ConfigureHost(messagingConfiguration, x);
-                ConfigureConsumers(messagingConfiguration, x);
+                ConfigureHost(x, messagingConfiguration);
+                ConfigureConsumers(x, messagingConfiguration, consumersAssembly);
 
 
-                static void ConfigureHost(MessagingConfig messagingConfiguration, IBusRegistrationConfigurator x)
+                static void ConfigureHost(IBusRegistrationConfigurator x, MessagingConfig messagingConfiguration)
                 {
                     var host = messagingConfiguration.Host;
                     if (host.EnableDelayedMessaging == true)
@@ -57,19 +57,22 @@ namespace Core.Infrastructures.DependencyInjection
                         rabbitMQ.ConfigureEndpoints(bus);
                     });
                 }
-                static void ConfigureConsumers(MessagingConfig messagingConfiguration, IBusRegistrationConfigurator x)
+                static void ConfigureConsumers(IBusRegistrationConfigurator x, MessagingConfig messagingConfiguration, Assembly consumersAssembly)
                 {
                     var consumerConfigurations = messagingConfiguration.Consumers ?? [];
-                    var assembly = Assembly.GetExecutingAssembly();
+                     
                     consumerConfigurations
                     .Where(x => x.Enabled)
                     .ToList()
                     .ForEach(consumerConfig =>
                     {
-                        var consumerType = assembly.GetType(consumerConfig.MessageFullTypeName)!;
+                        var consumerType = consumersAssembly.GetType(consumerConfig.MessageFullTypeName)!;
                         var consumerDefinitionType = typeof(GenericConsumerDefinition<>).MakeGenericType(consumerType);
                         SetConsumerConfiguration(consumerConfig, consumerDefinitionType);
-                        var consumer = x.AddConsumer(consumerType, consumerDefinitionType);
+                        var consumer = x.AddConsumer(
+                            consumerType, 
+                            consumerDefinitionType);
+                          
 
                         consumer
                         .Endpoint(x =>

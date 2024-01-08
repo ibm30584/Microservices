@@ -2,7 +2,6 @@
 using Codes.Domain.Entities;
 using Core.Application.Exceptions;
 using Core.Application.Models.CQRS;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Codes.Application.Codes.Commands.EditCode
@@ -29,8 +28,9 @@ namespace Codes.Application.Codes.Commands.EditCode
             {
                 var dbCode = await GetCodeEntity(request.CodeId, cancellationToken);
                 if (dbCode == null)
-                    return NotFound(x=>x.CodeId, "There is no code stored with provided id");
-
+                {
+                    return NotFound(x => x.CodeId, "There is no code stored with provided id");
+                }
 
                 var dbOtherCodeWithSameValue = await GetCodeEntity(request.CodeId, request.Value, cancellationToken);
                 BusinessException.Must(

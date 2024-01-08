@@ -1,25 +1,31 @@
-﻿using Codes.Application.Services.Persistence;
+﻿using Audit.Contracts.Messages;
+using Codes.Application.Services.Audit;
+using Codes.Application.Services.Persistence;
 using Codes.Domain.Entities;
 using Core.Application.Models.CQRS;
 using Microsoft.EntityFrameworkCore;
 
 namespace Codes.Application.CodeTypes.Commands.AddCodeType
 {
-    public class AddCodeTypeCommand : RequestBase<AddCodeTypeResult>
+    public class AddCodeTypeCommand : RequestBase<ResultBase<AddCodeTypeResult>>
     {
         public required string Value { get; set; }
         public required string Text { get; set; }
         public string? Text2 { get; set; }
 
-        public class AddCodeTypeHandler : RequestHandlerBase<AddCodeTypeCommand, AddCodeTypeResult>
+        public class AddCodeTypeHandler : RequestHandlerBase<AddCodeTypeCommand, ResultBase<AddCodeTypeResult>>
         {
             private readonly ICodesDbContext _codesDbContext;
+            private readonly IAuditService _auditService;
 
-            public AddCodeTypeHandler(ICodesDbContext codesDbContext)
+            public AddCodeTypeHandler(
+                ICodesDbContext codesDbContext,
+                IAuditService auditService)
             {
                 _codesDbContext = codesDbContext;
+                _auditService = auditService;
             }
-            public async override Task<AddCodeTypeResult> Handle(AddCodeTypeCommand request, CancellationToken cancellationToken)
+            public async override Task<ResultBase<AddCodeTypeResult>> Handle(AddCodeTypeCommand request, CancellationToken cancellationToken)
             {
                 var dbCodeType = await GetCodeTypeEntity(request.Value, cancellationToken);
                 if (dbCodeType != null)
@@ -29,6 +35,9 @@ namespace Codes.Application.CodeTypes.Commands.AddCodeType
 
                 var codeType = CreateCodeTypeEntity(request);
                 await Persist(codeType, cancellationToken);
+
+                var auditMessage = CreateAuditMessage(codeType);
+                await _auditService.Audit(auditMessage);
 
                 return Ok(new AddCodeTypeResult() { CodeTypeId = codeType.CodeTypeId });
             }
@@ -56,6 +65,22 @@ namespace Codes.Application.CodeTypes.Commands.AddCodeType
             {
                 await _codesDbContext.CodeTypes.AddRangeAsync(codeType);
                 await _codesDbContext.SaveChangesAsync(cancellationToken);
+            }
+            private AuditLogMessage CreateAuditMessage(CodeType codeType)
+            {
+                return new AuditLogMessage
+                {
+                    CreatedDate = codeType.CreatedDate,
+                    CreatedByUserId = codeType.CreatedByUserId,
+                    ServiceId = Audit.Contracts.Enums.AuditService.CodesManagement,
+                    EventId = Audit.Contracts.Enums.AuditEvent.AddCodeType,
+                    EventEntityId = codeType.CodeTypeId.ToString(),
+                    Metadata = [
+                        new AuditMetadata("Value", codeType.Value ?? string.Empty),
+                        new AuditMetadata("Text", codeType.Text),
+                        new AuditMetadata("Text2", codeType.Text2 ?? string.Empty),
+                    ]
+                };
             }
         }
     }

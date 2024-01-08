@@ -9,7 +9,7 @@ namespace Codes.Infrastructures.Services.Persistence
 {
     public class CodesDbContext : DbContextBase, ICodesDbContext
     {
-        public CodesDbContext(DbContextOptions options, ILoggerFactory loggerFactory, IHostEnvironment hostEnvironment, IServiceProvider serviceProvider) 
+        public CodesDbContext(DbContextOptions options, ILoggerFactory loggerFactory, IHostEnvironment hostEnvironment, IServiceProvider serviceProvider)
             : base(options, loggerFactory, hostEnvironment, serviceProvider)
         {
         }

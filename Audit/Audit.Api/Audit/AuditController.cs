@@ -1,5 +1,8 @@
-﻿using Codes.Api.Codes.DTOs;
+﻿using Audit.Api.Audit.DTOs;
+using Audit.Application.Audit.Queries.GetAuditLog;
+using Audit.Application.Audit.Queries.SearchAuditLog;
 using Core.Api.Models;
+using Core.Application.Models.CQRS;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,74 +13,94 @@ namespace Audit.Api.Audit
     [ApiController]
     public class AuditController : ControllerBase
     {
-        //private readonly IMediator _mediator;
+        private readonly IMediator _mediator;
 
-        //public AuditController(IMediator mediator)
-        //{
-        //    _mediator = mediator;
-        //}
+        public AuditController(IMediator mediator)
+        {
+            _mediator = mediator;
+        }
 
         [HttpGet()]
-        public Task<SearchResponseDTOBase<AuditLogItemDTO>> SearchCodes(
+        public async Task<SearchResponseDTO<AuditLogItemDTO>> SearchAudits(
             [FromHeader] string acceptLanguage,
             [FromQuery] SearchAuditLogsRequestDTO searchAuditLogsRequestDTO)
         {
-            throw new NotImplementedException();
+            var query = MapRequest(acceptLanguage, searchAuditLogsRequestDTO);
+            var result = await _mediator.Send(query);
+            var response = MapResult(result);
+            return response;
 
-            //var query = MapRequest(acceptLanguage, searchAuditLogsRequestDTO);
-            //var result = await _mediator.Send(query);
-            //var response = MapResult(result);
-            //return response;
+            static SearchResponseDTO<AuditLogItemDTO> MapResult(SearchResult<AuditLogItem> result)
+            {
+                return new SearchResponseDTO<AuditLogItemDTO>
+                {
+                    Header = result.Header,
+                    Body = result.Body != null
+                    ? new SearchResponseBodyDTO<AuditLogItemDTO>(
+                        Metadata: result.Body.Metadata,
+                        Data: result.Body.Data.Select(
+                            x => new AuditLogItemDTO(
+                                AuditLogId: x.AuditLogId,
+                                CreatedDate: x.CreatedDate,
+                                CreatedByUserId: x.CreatedByUserId,
+                                ServiceText: x.ServiceText,
+                                EventText: x.EventText,
+                                EventEntityId: x.EventEntityId))
+                        .ToArray()) : null
+                };
+            }
+
+            static SearchAuditLogQuery MapRequest(
+                string acceptLanguage,
+                SearchAuditLogsRequestDTO searchAuditLogsRequestDTO)
+            {
+                return new SearchAuditLogQuery()
+                {
+                    Language = acceptLanguage,
+                    PageNumber = searchAuditLogsRequestDTO.PageNumber,
+                    PageSize = searchAuditLogsRequestDTO.PageSize,
+                    ServiceId = Enum.TryParse<Domain.Enums.AuditService>(
+                        searchAuditLogsRequestDTO.ServiceId?.ToString(),
+                        out var serviceId) ? serviceId : null,
+                    EventId = Enum.TryParse<Domain.Enums.AuditEvent>(
+                        searchAuditLogsRequestDTO.EventId?.ToString(),
+                        out var eventId) ? eventId : null,
+                    EventEntityId = searchAuditLogsRequestDTO.EventEntityId
+                };
+            }
         }
 
         [HttpGet("{id}", Name = "GetAuditLog")]
-        public Task<AuditLogDTO> GetAuditLog(int id)
+        public async Task<AuditLogDTO> GetAuditLog(int id)
         {
-            throw new NotImplementedException();
-            //var query = MapQuery(id);
-            //var result = await _mediator.Send(query);
-            //var response = MapResult(result);
 
-            //return response; 
-        }
+            var query = MapQuery(id);
+            var result = await _mediator.Send(query);
+            var response = MapResult(result);
+            return response;
 
-        [HttpPost]
-        public Task<IResult> AddNewAuditLog([FromBody] AuditLogDTO auditLogDTO)
-        {
-            throw new NotImplementedException();
+            GetAuditLogQuery MapQuery(int id)
+            {
+                return new GetAuditLogQuery
+                {
+                    AuditLogId = id
+                };
+            }
 
-            //var command = MapCommand(codeDTO);
-            //var id = await _mediator.Send(command);
-            //return TypedResults.Created("/codes/{id}", codeId);
-        }
-
-        [HttpPut("{id}")]
-        public Task<IResult> EditAuditLog(int id, [FromBody] AuditLogDTO auditLogDTO)
-        {
-            throw new NotImplementedException();
-
-            //var command = MapRequest(id, auditLogDTO);
-            //await _mediator.Send(command);
-            //return TypedResults.NoContent();
-        }
-
-        [HttpPut("{id}/enable")]
-        public Task<IResult> EnableCode(int id)
-        {
-            throw new NotImplementedException();
-            //var command = MapCommand(id);
-            //await _mediator.Send(command);
-            //return TypedResults.NoContent();
-        }
-
-        [HttpPut("{id}/disable")]
-        public Task<IResult> DisableCode(int id)
-        {
-            throw new NotImplementedException();
-
-            //var command = MapCommand(id);
-            //await _mediator.Send(command);
-            //return TypedResults.NoContent();
+            AuditLogDTO MapResult(AuditLogResult result)
+            {
+                return new AuditLogDTO(
+                    AuditLogId: result.AuditLogId,
+                    CreatedDate: result.CreatedDate,
+                    CreatedByUserId: result.CreatedByUserId,
+                    ServiceText: result.ServiceText,
+                    EventText: result.EventText,
+                    EventEntityId: result.EventEntityId,
+                    Metadata: result.Metadata?
+                    .ConvertAll(x => new AuditLogMetadata(
+                        Key: x.Key,
+                        Value: x.Value)));
+            }
         }
     }
 }

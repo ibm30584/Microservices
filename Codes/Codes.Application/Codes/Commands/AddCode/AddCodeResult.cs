@@ -1,8 +1,6 @@
-﻿using Core.Application.Models.CQRS;
-
-namespace Codes.Application.Codes.Commands.AddCode
+﻿namespace Codes.Application.Codes.Commands.AddCode
 {
-    public class AddCodeResult: ResultBase
+    public class AddCodeResult
     {
         public int CodeId { get; set; }
     }

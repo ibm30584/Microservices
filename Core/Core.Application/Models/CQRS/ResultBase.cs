@@ -7,6 +7,6 @@
 
     public class ResultBase<TBody> : ResultBase
     {
-        public TBody? Body { get; set;}
+        public TBody? Body { get; set; }
     }
 }

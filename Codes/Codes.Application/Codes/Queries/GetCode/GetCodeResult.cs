@@ -1,9 +1,8 @@
 ﻿using Codes.Domain.Entities;
-using Core.Application.Models.CQRS;
 
 namespace Codes.Application.Codes.Queries.GetCode
 {
-    public class GetCodeResult : ResultBase
+    public class GetCodeResult
     {
         public int Id { get; set; }
         public string Value { get; set; } = null!;

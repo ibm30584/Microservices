@@ -1,7 +1,7 @@
 ﻿namespace Codes.Api.Codes.DTOs
 {
     public record CodeItemDTO(
-        int Id,
+        int CodeId,
         string Value,
         string Text,
         string? Text2,

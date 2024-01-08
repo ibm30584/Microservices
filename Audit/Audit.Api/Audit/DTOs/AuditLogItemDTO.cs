@@ -1,6 +1,10 @@
-﻿namespace Codes.Api.Codes.DTOs
+﻿namespace Audit.Api.Audit.DTOs
 {
     public record AuditLogItemDTO(
-        int Id,
-        string Description);
+        int AuditLogId,
+        DateTime CreatedDate,
+        string CreatedByUserId,
+        string ServiceText,
+        string EventText,
+        string EventEntityId);
 }

@@ -1,9 +1,12 @@
-﻿using Core.Api.Models;
+﻿using Audit.Api.Enums;
+using Core.Api.Models;
 
-namespace Codes.Api.Codes.DTOs
+namespace Audit.Api.Audit.DTOs
 {
     public class SearchAuditLogsRequestDTO : SearchRequestDTOBase
     {
-        public string? Description { get; set; }
+        public AuditService? ServiceId { get; set; }
+        public AuditEvent? EventId { get; set; }
+        public string? EventEntityId { get; set; }
     }
 }

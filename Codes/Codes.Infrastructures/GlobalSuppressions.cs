@@ -7,3 +7,4 @@ using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage("Style", "IDE0290:Use primary constructor", Justification = "<Pending>", Scope = "member", Target = "~M:Codes.Infrastructures.Services.Persistence.CodesDbContext.#ctor(Microsoft.EntityFrameworkCore.DbContextOptions,Microsoft.Extensions.Logging.ILoggerFactory,Microsoft.Extensions.Hosting.IHostEnvironment)")]
 [assembly: SuppressMessage("Style", "IDE0290:Use primary constructor", Justification = "<Pending>", Scope = "member", Target = "~M:Codes.Infrastructures.Services.Persistence.CodesDbContext.#ctor(Microsoft.EntityFrameworkCore.DbContextOptions,Microsoft.Extensions.Logging.ILoggerFactory,Microsoft.Extensions.Hosting.IHostEnvironment,System.IServiceProvider)")]
+[assembly: SuppressMessage("Style", "IDE0290:Use primary constructor", Justification = "<Pending>", Scope = "member", Target = "~M:Codes.Infrastructures.Services.AuditService.#ctor(MassTransit.IBus)")]

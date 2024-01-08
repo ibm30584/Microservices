@@ -1,21 +1,24 @@
 ﻿using Core.Application.Enums;
+using Core.Application.Exceptions;
 using MediatR;
-using MediatR.Wrappers;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
-using System.Security.Claims;
 
 namespace Core.Application.Models.CQRS
 {
+    /// <summary>
+    /// Base class for CQRS handlers derived from RequestHandlerBase<TRequest, TResult> to support methods of
+    /// ThrowBadRequest, ThrowNotFound, ThrowUnauthorized, ThrowForbidden,
+    /// BadRequest, NotFound, Unauthorized, Forbidden
+    /// 
+    /// To work with this type of handlers, Request must inherit RequestBase 
+    /// and must return Result of type ResultBase<TBody> where TBody is the business result
+    /// 
+    /// Also final API response of type ResponseDTOBase<TBody> where TBody is the business response dto
+    /// </summary>
     public abstract class RequestHandlerBase<TRequest, TResult> : IRequestHandler<TRequest, TResult>
-        where TRequest : RequestBase<TResult>
+        where TRequest : IRequestExtended<TResult>
         where TResult : ResultBase, new()
     {
-        public string CorrelationId { get; set; } = null!;
-        public ClaimsIdentity Claims { get; set; } = null!;
-        public AppLanguage Language { get; set; }
-
-
         public abstract Task<TResult> Handle(TRequest request, CancellationToken cancellationToken);
 
         public List<ResultError> Errors { get; set; } = [];
@@ -30,11 +33,24 @@ namespace Core.Application.Models.CQRS
             {
                 Header = new ResultHeader
                 {
-                    ErrorCode = AppErrorCode.BadRequest,
+                    StatusCode = AppStatusCode.BadRequest,
                     ErrorMessage = errorMessage,
                     Target = target,
                     Errors = Errors?.Count > 0 ? Errors : null
                 }
+            };
+        }
+        protected void ThrowBadRequest(Expression<Func<TRequest, object>> target, string errorMessage)
+        {
+            ThrowBadRequest(GetFieldName(target), errorMessage);
+        }
+        protected void ThrowBadRequest(string target, string errorMessage)
+        {
+            throw new BusinessException(errorMessage)
+            {
+                ErrorCode = AppStatusCode.BadRequest,
+                Target = target,
+                Errors = Errors?.Count > 0 ? Errors : null
             };
         }
 
@@ -48,10 +64,23 @@ namespace Core.Application.Models.CQRS
             {
                 Header = new ResultHeader
                 {
-                    ErrorCode = AppErrorCode.NotFound,
+                    StatusCode = AppStatusCode.NotFound,
                     ErrorMessage = errorMessage,
                     Target = target
                 }
+            };
+        }
+        protected void ThrowNotFound(Expression<Func<TRequest, object>> target, string errorMessage)
+        {
+            ThrowNotFound(GetFieldName(target), errorMessage);
+        }
+        protected void ThrowNotFound(string target, string errorMessage)
+        {
+            throw new BusinessException(errorMessage)
+            {
+                ErrorCode = AppStatusCode.NotFound,
+                Target = target,
+                Errors = Errors?.Count > 0 ? Errors : null
             };
         }
 
@@ -65,10 +94,23 @@ namespace Core.Application.Models.CQRS
             {
                 Header = new ResultHeader
                 {
-                    ErrorCode = AppErrorCode.Unauthorized,
+                    StatusCode = AppStatusCode.Unauthorized,
                     ErrorMessage = errorMessage,
                     Target = target
                 }
+            };
+        }
+        protected void ThrowUnauthorized(Expression<Func<TRequest, object>> target, string errorMessage)
+        {
+            ThrowUnauthorized(GetFieldName(target), errorMessage);
+        }
+        protected void ThrowUnauthorized(string target, string errorMessage)
+        {
+            throw new BusinessException(errorMessage)
+            {
+                ErrorCode = AppStatusCode.Unauthorized,
+                Target = target,
+                Errors = Errors?.Count > 0 ? Errors : null
             };
         }
 
@@ -82,10 +124,23 @@ namespace Core.Application.Models.CQRS
             {
                 Header = new ResultHeader
                 {
-                    ErrorCode = AppErrorCode.Forbidden,
+                    StatusCode = AppStatusCode.Forbidden,
                     ErrorMessage = errorMessage,
                     Target = target
                 }
+            };
+        }
+        protected void ThrowForbidden(Expression<Func<TRequest, object>> target, string errorMessage)
+        {
+            ThrowForbidden(GetFieldName(target), errorMessage);
+        }
+        protected void ThrowForbidden(string target, string errorMessage)
+        {
+            throw new BusinessException(errorMessage)
+            {
+                ErrorCode = AppStatusCode.Forbidden,
+                Target = target,
+                Errors = Errors?.Count > 0 ? Errors : null
             };
         }
 
@@ -95,40 +150,55 @@ namespace Core.Application.Models.CQRS
             {
                 Header = new ResultHeader
                 {
-                    ErrorCode = AppErrorCode.Ok
+                    StatusCode = AppStatusCode.Ok
                 }
             };
         }
-        protected TResult Ok([NotNull] TResult result)
+
+        protected TResult Ok(TResult result)
         {
             result.Header = new ResultHeader
             {
-                ErrorCode = AppErrorCode.Ok
+                StatusCode = AppStatusCode.Ok
             };
             return result;
         }
 
+        protected ResultBase<TBody> Ok<TBody>(TBody? body)
+        {
+            return new ResultBase<TBody>()
+            {
+                Header = new ResultHeader
+                {
+                    StatusCode = AppStatusCode.Ok
+                },
+                Body = body
+            };
+        }
 
         private static string GetFieldName(Expression<Func<TRequest, object>> field)
         {
-            if (field.Body is MemberExpression memberExpression)
-            {
-                return memberExpression.Member.Name;
-            }
-            else if (field.Body is UnaryExpression unaryExpression &&
-                     unaryExpression.Operand is MemberExpression innerMemberExpression)
-            {
-                return innerMemberExpression.Member.Name;
-            }
-            else
-            {
-                throw new ArgumentException("Expression is not a valid member access expression.", nameof(field));
-            }
+            return field.Body is MemberExpression memberExpression
+                ? memberExpression.Member.Name
+                : field.Body is UnaryExpression unaryExpression &&
+                                     unaryExpression.Operand is MemberExpression innerMemberExpression
+                    ? innerMemberExpression.Member.Name
+                    : throw new ArgumentException("Expression is not a valid member access expression.", nameof(field));
         }
     }
 
+
+    /// <summary>
+    /// Base class for CQRS handlers derived from RequestHandlerBase<TRequest> to support methods of
+    /// ThrowBadRequest, ThrowNotFound, ThrowUnauthorized, ThrowForbidden,
+    /// BadRequest, NotFound, Unauthorized, Forbidden
+    /// 
+    /// To work with this type of handlers, Request must inherit RequestBase with no result
+    /// 
+    /// Also final API response of type ResponseDTOBase with no business response dto
+    /// </summary>
     public abstract class RequestHandlerBase<TRequest> : RequestHandlerBase<TRequest, ResultBase>
-         where TRequest : RequestBase<ResultBase>
+         where TRequest : IRequestExtended<ResultBase>
     {
 
     }

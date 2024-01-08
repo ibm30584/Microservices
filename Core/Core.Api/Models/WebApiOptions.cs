@@ -1,4 +1,5 @@
 ﻿using Core.Application.Exceptions;
+using Core.Application.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
@@ -13,6 +14,7 @@ namespace Core.Api.Models
         public required IHostBuilder Host { get; set; }
         public required IConfiguration Configuration { get; set; }
         public SwaggerOptions? SwaggerOptions { get; set; }
+        public string DefaultLanguage { get; set; } = AppConstants.DefaultLanguage;
 
         internal static void Validate(WebApiOptions webApiConfig)
         {

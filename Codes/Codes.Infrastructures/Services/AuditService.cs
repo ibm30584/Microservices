@@ -1,12 +1,20 @@
-﻿using Codes.Application.Services.Audit;
+﻿using Audit.Contracts.Messages;
+using Codes.Application.Services.Audit;
+using MassTransit;
 
 namespace Codes.Infrastructures.Services
 {
     public class AuditService : IAuditService
     {
-        public Task Audit(AuditLog auditLog)
+        private readonly IBus _bus;
+
+        public AuditService(IBus bus)
         {
-            throw new NotImplementedException();
+            _bus = bus;
+        }
+        public Task Audit(AuditLogMessage auditLogMessage)
+        {
+            return _bus.Publish(auditLogMessage);
         }
     }
 }

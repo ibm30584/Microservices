@@ -27,13 +27,21 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Application", "Core\Co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Api", "Core\Core.Api\Core.Api.csproj", "{877EF98B-77E8-4A57-AF28-55880D924AB7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Audit.Domain", "Audit\Audit.Domain\Audit.Domain.csproj", "{A540A1CB-C79B-452E-A13F-2CBB88A5B43B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Audit.Domain", "Audit\Audit.Domain\Audit.Domain.csproj", "{A540A1CB-C79B-452E-A13F-2CBB88A5B43B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Audit.Application", "Audit\Audit.Application\Audit.Application.csproj", "{28CCF9FE-BA23-455A-BC8A-36442044FA4C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Audit.Application", "Audit\Audit.Application\Audit.Application.csproj", "{28CCF9FE-BA23-455A-BC8A-36442044FA4C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Audit.Infrastructures", "Audit\Audit.Infrastructures\Audit.Infrastructures.csproj", "{B9F95A6F-2F88-41AE-91C1-C8513343C504}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Audit.Infrastructures", "Audit\Audit.Infrastructures\Audit.Infrastructures.csproj", "{B9F95A6F-2F88-41AE-91C1-C8513343C504}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Audit.Api", "Audit\Audit.Api\Audit.Api.csproj", "{110693A8-638C-4DB5-8C19-300F6DE473B0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Audit.Api", "Audit\Audit.Api\Audit.Api.csproj", "{110693A8-638C-4DB5-8C19-300F6DE473B0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Audit.Worker", "Audit\Audit.Processor\Audit.Worker.csproj", "{9D775AFC-E321-4598-A091-D93CECC8F913}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Worker", "Core\Core.Worker\Core.Worker.csproj", "{D156834B-F1BE-486A-96F6-8613CB4627B6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Audit.Contracts", "Audit\Audit.Contracts\Audit.Contracts.csproj", "{45CBE5C3-2A3A-4E09-96E2-B8E49B828E76}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{15BA73AB-8057-4443-833C-58F956257B6D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -89,6 +97,22 @@ Global
 		{110693A8-638C-4DB5-8C19-300F6DE473B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{110693A8-638C-4DB5-8C19-300F6DE473B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{110693A8-638C-4DB5-8C19-300F6DE473B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D775AFC-E321-4598-A091-D93CECC8F913}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D775AFC-E321-4598-A091-D93CECC8F913}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D775AFC-E321-4598-A091-D93CECC8F913}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D775AFC-E321-4598-A091-D93CECC8F913}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D156834B-F1BE-486A-96F6-8613CB4627B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D156834B-F1BE-486A-96F6-8613CB4627B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D156834B-F1BE-486A-96F6-8613CB4627B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D156834B-F1BE-486A-96F6-8613CB4627B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45CBE5C3-2A3A-4E09-96E2-B8E49B828E76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45CBE5C3-2A3A-4E09-96E2-B8E49B828E76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45CBE5C3-2A3A-4E09-96E2-B8E49B828E76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45CBE5C3-2A3A-4E09-96E2-B8E49B828E76}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15BA73AB-8057-4443-833C-58F956257B6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15BA73AB-8057-4443-833C-58F956257B6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15BA73AB-8057-4443-833C-58F956257B6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15BA73AB-8057-4443-833C-58F956257B6D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -106,6 +130,9 @@ Global
 		{28CCF9FE-BA23-455A-BC8A-36442044FA4C} = {C0EF4D52-9BFE-462F-AF14-D179A782FEA2}
 		{B9F95A6F-2F88-41AE-91C1-C8513343C504} = {C0EF4D52-9BFE-462F-AF14-D179A782FEA2}
 		{110693A8-638C-4DB5-8C19-300F6DE473B0} = {C0EF4D52-9BFE-462F-AF14-D179A782FEA2}
+		{9D775AFC-E321-4598-A091-D93CECC8F913} = {C0EF4D52-9BFE-462F-AF14-D179A782FEA2}
+		{D156834B-F1BE-486A-96F6-8613CB4627B6} = {FB5339D6-5BCD-4BF8-ADE3-3CA740D9FBCC}
+		{45CBE5C3-2A3A-4E09-96E2-B8E49B828E76} = {C0EF4D52-9BFE-462F-AF14-D179A782FEA2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C11304A1-2D24-4A19-9029-D8C6790E5D5E}

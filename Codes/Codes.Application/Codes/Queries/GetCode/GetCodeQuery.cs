@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Codes.Application.Codes.Queries.GetCode
 {
-    public class GetCodeQuery : RequestBase<GetCodeResult>
+    public class GetCodeQuery : RequestBase<ResultBase<GetCodeResult>>
     {
         public int CodeID { get; set; }
-        public class GetCodeHandler : RequestHandlerBase<GetCodeQuery, GetCodeResult>
+        public class GetCodeHandler : RequestHandlerBase<GetCodeQuery, ResultBase<GetCodeResult>>
         {
             private readonly ICodesDbContext _codesDbContext;
 
@@ -16,10 +16,12 @@ namespace Codes.Application.Codes.Queries.GetCode
             {
                 _codesDbContext = codesDbContext;
             }
-            public override async Task<GetCodeResult> Handle(GetCodeQuery request, CancellationToken cancellationToken)
+            public override async Task<ResultBase<GetCodeResult>> Handle(GetCodeQuery request, CancellationToken cancellationToken)
             {
                 var dbCode = await GetCodeEntity(request.CodeID, cancellationToken);
-                return dbCode == null ? NotFound(x => x.CodeID, "There is no code stored with provide id") : Ok(MapResponse(dbCode));
+                return dbCode == null
+                    ? NotFound(x => x.CodeID, "There is no code stored with provide id")
+                    : Ok(MapResponse(dbCode));
             }
 
             private async Task<Code?> GetCodeEntity(int codeId, CancellationToken cancellationToken)

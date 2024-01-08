@@ -1,7 +1,9 @@
-﻿namespace Codes.Application.Services.Audit
+﻿using Audit.Contracts.Messages;
+
+namespace Codes.Application.Services.Audit
 {
     public interface IAuditService
     {
-        Task Audit(AuditLog auditLog);
+        Task Audit(AuditLogMessage auditLogMessage);
     }
 }
