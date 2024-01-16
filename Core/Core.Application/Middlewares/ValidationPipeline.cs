@@ -33,7 +33,7 @@ namespace Core.Application.Middlewares
                 {
                     Header = new ResultHeader
                     {
-                        StatusCode = AppStatusCode.BadRequest,
+                        StatusCode = ResultCode.BadRequest,
                         ErrorMessage = "Request validation failed",
                         Errors = failures
                             .Select(x => new ResultError(x.ErrorCode, x.ErrorMessage, x.PropertyName))

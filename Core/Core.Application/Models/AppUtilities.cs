@@ -1,9 +1,11 @@
 ﻿
 using Core.Application.Exceptions;
 using Core.Application.Models.CQRS;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq.Expressions;
 using System.Security.Claims;
 
 namespace Core.Application.Models
@@ -79,6 +81,16 @@ namespace Core.Application.Models
         public static string Localize(string text, string? text2)
         {
             return AppConstants.CurrentLanguageIsArabic ? text : text2 ?? text;
+        }
+
+        internal static string GetFieldName<TRequest>(Expression<Func<TRequest, object>> field)
+        {
+            return field.Body is MemberExpression memberExpression
+                ? memberExpression.Member.Name
+                : field.Body is UnaryExpression unaryExpression &&
+                                     unaryExpression.Operand is MemberExpression innerMemberExpression
+                    ? innerMemberExpression.Member.Name
+                    : throw new ArgumentException("Expression is not a valid member access expression.", nameof(field));
         }
     }
 }

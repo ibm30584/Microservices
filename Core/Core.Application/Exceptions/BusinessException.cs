@@ -7,7 +7,7 @@ namespace Core.Application.Exceptions
     [Serializable]
     public class BusinessException : Exception
     {
-        public AppStatusCode ErrorCode { get; set; } = AppStatusCode.BadRequest;
+        public ResultCode ErrorCode { get; set; } = ResultCode.BadRequest;
         public string? Target { get; set; }
         public List<ResultError>? Errors { get; set; }
 
@@ -21,7 +21,7 @@ namespace Core.Application.Exceptions
             {
                 throw new BusinessException(message)
                 {
-                    ErrorCode = AppStatusCode.NotFound
+                    ErrorCode = ResultCode.NotFound
                 };
             }
         }

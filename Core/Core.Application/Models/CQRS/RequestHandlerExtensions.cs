@@ -21,7 +21,7 @@ namespace Core.Application.Models.CQRS
         {
             return new BusinessException(errorMessage)
             {
-                ErrorCode = AppStatusCode.BadRequest,
+                ErrorCode = ResultCode.BadRequest,
                 Target = target,
                 Errors = errors?.Count > 0 ? errors : null
             };
@@ -36,7 +36,7 @@ namespace Core.Application.Models.CQRS
         {
             return new BusinessException(errorMessage)
             {
-                ErrorCode = AppStatusCode.BadRequest,
+                ErrorCode = ResultCode.BadRequest,
                 Target = target,
                 Errors = errors?.Count > 0 ? errors : null
             };
@@ -52,7 +52,7 @@ namespace Core.Application.Models.CQRS
         {
             return new BusinessException(errorMessage)
             {
-                ErrorCode = AppStatusCode.NotFound,
+                ErrorCode = ResultCode.NotFound,
                 Target = target,
                 Errors = errors?.Count > 0 ? errors : null
             };
@@ -67,7 +67,7 @@ namespace Core.Application.Models.CQRS
         {
             return new BusinessException(errorMessage)
             {
-                ErrorCode = AppStatusCode.NotFound,
+                ErrorCode = ResultCode.NotFound,
                 Target = target,
                 Errors = errors?.Count > 0 ? errors : null
             };
@@ -83,7 +83,7 @@ namespace Core.Application.Models.CQRS
         {
             return new BusinessException(errorMessage)
             {
-                ErrorCode = AppStatusCode.Unauthorized,
+                ErrorCode = ResultCode.Unauthorized,
                 Target = target,
                 Errors = errors?.Count > 0 ? errors : null
             };
@@ -98,7 +98,7 @@ namespace Core.Application.Models.CQRS
         {
             return new BusinessException(errorMessage)
             {
-                ErrorCode = AppStatusCode.Unauthorized,
+                ErrorCode = ResultCode.Unauthorized,
                 Target = target,
                 Errors = errors?.Count > 0 ? errors : null
             };
@@ -114,7 +114,7 @@ namespace Core.Application.Models.CQRS
         {
             return new BusinessException(errorMessage)
             {
-                ErrorCode = AppStatusCode.Forbidden,
+                ErrorCode = ResultCode.Forbidden,
                 Target = target,
                 Errors = errors?.Count > 0 ? errors : null
             };
@@ -129,7 +129,7 @@ namespace Core.Application.Models.CQRS
         {
             return new BusinessException(errorMessage)
             {
-                ErrorCode = AppStatusCode.Forbidden,
+                ErrorCode = ResultCode.Forbidden,
                 Target = target,
                 Errors = errors?.Count > 0 ? errors : null
             };

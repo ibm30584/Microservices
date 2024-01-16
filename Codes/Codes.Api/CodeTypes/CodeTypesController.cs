@@ -1,6 +1,7 @@
 ﻿using Codes.Api.CodeTypes.DTOs;
 using Codes.Application.CodeTypes.Commands.AddCodeType;
 using Codes.Application.CodeTypes.Commands.AddCodeType2;
+using Codes.Application.CodeTypes.Commands.AddCodeType3;
 using Codes.Application.CodeTypes.Commands.DeleteCodeType;
 using Codes.Application.CodeTypes.Commands.EditCodeType;
 using Codes.Application.CodeTypes.Queries.GetCodeType;
@@ -93,6 +94,8 @@ namespace Codes.Api.CodeTypes
             }
         }
 
+     
+
         [HttpPost]
         public async Task<ResponseDTOBase<AddCodeTypeResponseDTO>> AddCodeType([FromBody] CodeTypeDTO codeTypeDTO)
         {
@@ -140,6 +143,32 @@ namespace Codes.Api.CodeTypes
                     Value = codeTypeDTO.Value,
                     Text = codeTypeDTO.Text,
                     Text2 = codeTypeDTO.Text2
+                };
+            }
+        }
+
+        [HttpPost("/codetypes3")]
+        public async Task<Result<AddCodeTypeResponseDTO>> AddCodeType3([FromBody] CodeTypeDTO codeTypeDTO)
+        {
+            var command = MapCommand(codeTypeDTO);
+            var result = await _mediator.Send(command, AppUtilities.CreateCancelationToken());
+            return result.Map(MapResponse);
+
+            static AddCodeTypeCommand3 MapCommand(CodeTypeDTO codeTypeDTO)
+            {
+                return new AddCodeTypeCommand3
+                {
+                    Value = codeTypeDTO.Value,
+                    Text = codeTypeDTO.Text,
+                    Text2 = codeTypeDTO.Text2
+                };
+            }
+
+            static AddCodeTypeResponseDTO MapResponse(AddCodeTypeResult3 result)
+            {
+                return new AddCodeTypeResponseDTO
+                {
+                    CodeTypeId = result.CodeTypeId
                 };
             }
         }

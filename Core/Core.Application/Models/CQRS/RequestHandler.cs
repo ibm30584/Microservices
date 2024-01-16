@@ -11,13 +11,13 @@ namespace Core.Application.Models.CQRS
 
         protected void ThrowBadRequest(Expression<Func<TRequest, object>> target, string errorMessage)
         {
-            ThrowBadRequest(GetFieldName(target), errorMessage);
+            ThrowBadRequest(AppUtilities.GetFieldName(target), errorMessage);
         }
         protected void ThrowBadRequest(string target, string errorMessage)
         {
             throw new BusinessException(errorMessage)
             {
-                ErrorCode = AppStatusCode.BadRequest,
+                ErrorCode = ResultCode.BadRequest,
                 Target = target,
                 Errors = Errors?.Count > 0 ? Errors : null
             };
@@ -25,13 +25,13 @@ namespace Core.Application.Models.CQRS
 
         protected void ThrowNotFound(Expression<Func<TRequest, object>> target, string errorMessage)
         {
-            ThrowNotFound(GetFieldName(target), errorMessage);
+            ThrowNotFound(AppUtilities.GetFieldName(target), errorMessage);
         }
         protected void ThrowNotFound(string target, string errorMessage)
         {
             throw new BusinessException(errorMessage)
             {
-                ErrorCode = AppStatusCode.NotFound,
+                ErrorCode = ResultCode.NotFound,
                 Target = target,
                 Errors = Errors?.Count > 0 ? Errors : null
             };
@@ -39,13 +39,13 @@ namespace Core.Application.Models.CQRS
 
         protected void ThrowUnauthorized(Expression<Func<TRequest, object>> target, string errorMessage)
         {
-            ThrowUnauthorized(GetFieldName(target), errorMessage);
+            ThrowUnauthorized(AppUtilities.GetFieldName(target), errorMessage);
         }
         protected void ThrowUnauthorized(string target, string errorMessage)
         {
             throw new BusinessException(errorMessage)
             {
-                ErrorCode = AppStatusCode.Unauthorized,
+                ErrorCode = ResultCode.Unauthorized,
                 Target = target,
                 Errors = Errors?.Count > 0 ? Errors : null
             };
@@ -53,26 +53,16 @@ namespace Core.Application.Models.CQRS
 
         protected void ThrowForbidden(Expression<Func<TRequest, object>> target, string errorMessage)
         {
-            ThrowForbidden(GetFieldName(target), errorMessage);
+            ThrowForbidden(AppUtilities.GetFieldName(target), errorMessage);
         }
         protected void ThrowForbidden(string target, string errorMessage)
         {
             throw new BusinessException(errorMessage)
             {
-                ErrorCode = AppStatusCode.Forbidden,
+                ErrorCode = ResultCode.Forbidden,
                 Target = target,
                 Errors = Errors?.Count > 0 ? Errors : null
             };
-        }
-
-        private static string GetFieldName(Expression<Func<TRequest, object>> field)
-        {
-            return field.Body is MemberExpression memberExpression
-                ? memberExpression.Member.Name
-                : field.Body is UnaryExpression unaryExpression &&
-                                     unaryExpression.Operand is MemberExpression innerMemberExpression
-                    ? innerMemberExpression.Member.Name
-                    : throw new ArgumentException("Expression is not a valid member access expression.", nameof(field));
         }
     }
 

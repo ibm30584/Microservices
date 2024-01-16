@@ -33,7 +33,7 @@ namespace Core.Api.Middlewares
 
             BusinessException.ThrowIfNull(result, "Result must not be null");
             BusinessException.ThrowIfNull(result.Header, "Result's header must not be null");
-            if (result.Header.StatusCode != AppStatusCode.Ok)
+            if (result.Header.StatusCode != ResultCode.Ok)
             {
                 _httpContext.Response.StatusCode = (int)result.Header.StatusCode;
             }
