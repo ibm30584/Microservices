@@ -1,6 +1,6 @@
 ﻿namespace Codes.Api.CodeTypes.DTOs
 {
-    public class AddCodeTypeResponseDTO
+    public class AddCodeTypeResponseDto
     {
         public int CodeTypeId { get; set; }
     }

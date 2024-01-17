@@ -1,6 +1,5 @@
 ﻿namespace Core.Application.Exceptions
 {
-    [Serializable]
     public class ProcessingException : Exception
     {
         public ProcessingException() { }

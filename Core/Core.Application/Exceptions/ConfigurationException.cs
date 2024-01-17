@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 
 namespace Core.Application.Exceptions
 {
-    [Serializable]
     public class ConfigurationException : Exception
     {
         public ConfigurationException() { }

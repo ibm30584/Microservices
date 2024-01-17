@@ -3,7 +3,7 @@ using Core.Api.Models;
 
 namespace Audit.Api.Audit.DTOs
 {
-    public class SearchAuditLogsRequestDTO : SearchRequestDTOBase
+    public class SearchAuditLogsRequestDto : SearchRequestDtoBase
     {
         public AuditService? ServiceId { get; set; }
         public AuditEvent? EventId { get; set; }

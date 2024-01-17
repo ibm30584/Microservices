@@ -2,7 +2,7 @@
 using Codes.Application.Services.Audit;
 using Codes.Application.Services.Persistence;
 using Codes.Domain.Entities;
-using Core.Application.Models;
+using Core.Application.Models.CQRS;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,8 +32,7 @@ namespace Codes.Application.CodeTypes.Commands.AddCodeType3
                 if (dbCodeType != null)
                 {
                     return Result<AddCodeTypeResult3>.BadRequest<AddCodeTypeCommand3>(x=>x.Value, "There is a code type stored with the same provided value.");
-                }
-
+                } 
                 var codeType = CreateCodeTypeEntity(request);
                 await Persist(codeType, cancellationToken);
 

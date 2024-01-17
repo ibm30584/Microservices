@@ -16,7 +16,7 @@ namespace Core.Processor.DependencyInjection
 
             var logger = workerOptions.Builder.AddLogging(workerOptions.Name, workerOptions.Configuration);
 
-            AppConstants.CurrentLanguage = workerOptions.DefaultLanguage;
+            AppConstants.DefaultLanguage = workerOptions.DefaultLanguage;
             return logger;
         }
     }

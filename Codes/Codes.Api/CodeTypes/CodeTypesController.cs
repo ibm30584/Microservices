@@ -7,7 +7,6 @@ using Codes.Application.CodeTypes.Commands.EditCodeType;
 using Codes.Application.CodeTypes.Queries.GetCodeType;
 using Codes.Application.CodeTypes.Queries.SearchCodeTypes;
 using Codes.Domain.Entities;
-using Core.Api.Models;
 using Core.Application.Models;
 using Core.Application.Models.CQRS;
 using MediatR;
@@ -27,15 +26,15 @@ namespace Codes.Api.CodeTypes
         }
 
         [HttpGet]
-        public async Task<SearchResponseDTO<CodeTypeItemDTO>> SearchCodeTypes([FromQuery] SearchCodeTypesRequestDTO searchCodesRequestDTO)
+        public async Task<Result<SearchResult<CodeTypeItemDto>>> SearchCodeTypes([FromQuery] SearchCodeTypesRequestDto searchCodesRequestDTO)
         {
             var query = MapQuery(searchCodesRequestDTO);
             var result = await _mediator.Send(query);
 
-            var response = MapResponse(result);
+            var response = result.Map(MapResponse);
             return response;
 
-            SearchCodeTypesQuery MapQuery(SearchCodeTypesRequestDTO searchCodesRequestDTO)
+            SearchCodeTypesQuery MapQuery(SearchCodeTypesRequestDto searchCodesRequestDTO)
             {
                 return new SearchCodeTypesQuery
                 {
@@ -47,29 +46,24 @@ namespace Codes.Api.CodeTypes
                 };
             }
 
-            SearchResponseDTO<CodeTypeItemDTO> MapResponse(SearchResult<CodeType> result)
+            SearchResult<CodeTypeItemDto> MapResponse(SearchResult<CodeType> result)
             {
-                return new SearchResponseDTO<CodeTypeItemDTO>
-                {
-                    Header = result.Header,
-                    Body = result.Body != null
-                        ? new SearchResponseBodyDTO<CodeTypeItemDTO>(
-                            Metadata: result.Body.Metadata,
-                            Data: result.Body.Data.Select(x => new CodeTypeItemDTO(
-                                CodeTypeId: x.CodeTypeId,
-                                Value: x.Value,
-                                Text: x.Text,
-                                Text2: x.Text2)).ToArray()) : null
-                };
+                return new SearchResult<CodeTypeItemDto>(
+                    Data: result.Data.Select(
+                        resultDatum => new CodeTypeItemDto(
+                            CodeTypeId: resultDatum.CodeTypeId,
+                            Value: resultDatum.Value,
+                            Text: resultDatum.Text,
+                            Text2: resultDatum.Text2)).ToArray(), Metadata: result.Metadata);
             }
         }
 
         [HttpGet("{codeTypeId}", Name = "GetCodeType")]
-        public async Task<ResponseDTOBase<CodeTypeDTO>> GetCodeType(int codeTypeId)
+        public async Task<Result<CodeTypeDto>> GetCodeType(int codeTypeId)
         {
             var query = MapQuery(codeTypeId);
             var result = await _mediator.Send(query);
-            var response = MapResponse(result);
+            var response = result.Map(MapResponse);
             return response;
 
             GetCodeTypeQuery MapQuery(int id)
@@ -79,32 +73,25 @@ namespace Codes.Api.CodeTypes
                     CodeTypeId = id
                 };
             }
-            ResponseDTOBase<CodeTypeDTO> MapResponse(ResultBase<GetCodeTypeResult> result)
+
+            CodeTypeDto MapResponse(GetCodeTypeResult result)
             {
-                return new ResponseDTOBase<CodeTypeDTO>
-                {
-                    Header = result.Header,
-                    Body = result.Body != null
-                        ? new CodeTypeDTO(
-                            Value: result.Body.Value,
-                            Text: result.Body.Text,
-                            Text2: result.Body.Text2)
-                        : null
-                };
+                return new CodeTypeDto(
+                    Value: result.Value,
+                    Text: result.Text,
+                    Text2: result.Text2);
             }
         }
 
-     
-
         [HttpPost]
-        public async Task<ResponseDTOBase<AddCodeTypeResponseDTO>> AddCodeType([FromBody] CodeTypeDTO codeTypeDTO)
+        public async Task<Result<AddCodeTypeResponseDto>> AddCodeType([FromBody] CodeTypeDto codeTypeDTO)
         {
             var command = MapCommand(codeTypeDTO);
             var result = await _mediator.Send(command, AppUtilities.CreateCancelationToken());
 
-            return MapResponse(result);
+            return result.Map(MapResponse);
 
-            static AddCodeTypeCommand MapCommand(CodeTypeDTO codeTypeDTO)
+            static AddCodeTypeCommand MapCommand(CodeTypeDto codeTypeDTO)
             {
                 return new AddCodeTypeCommand
                 {
@@ -114,29 +101,26 @@ namespace Codes.Api.CodeTypes
                 };
             }
 
-            static ResponseDTOBase<AddCodeTypeResponseDTO> MapResponse(ResultBase<AddCodeTypeResult> result)
+            static AddCodeTypeResponseDto MapResponse(AddCodeTypeResult result)
             {
-                return new ResponseDTOBase<AddCodeTypeResponseDTO>
+                return new AddCodeTypeResponseDto
                 {
-                    Header = result.Header,
-                    Body = result.Body != null ? new AddCodeTypeResponseDTO
-                    {
-                        CodeTypeId = result.Body.CodeTypeId
-                    } : null
+                    CodeTypeId = result.CodeTypeId
                 };
             }
         }
 
+
         //Proxy
         [HttpPost("/codetypes2")]
-        public async Task<IResult> AddCodeType2([FromBody] CodeTypeDTO codeTypeDTO)
+        public async Task<IResult> AddCodeType2([FromBody] CodeTypeDto codeTypeDTO)
         {
             var command = MapCommand(codeTypeDTO);
             var codeTypeId = await _mediator.Send(command, AppUtilities.CreateCancelationToken());
 
             return TypedResults.Created($"/codetypes/{codeTypeId}", codeTypeId);
 
-            static AddCodeTypeCommand2 MapCommand(CodeTypeDTO codeTypeDTO)
+            static AddCodeTypeCommand2 MapCommand(CodeTypeDto codeTypeDTO)
             {
                 return new AddCodeTypeCommand2
                 {
@@ -148,13 +132,13 @@ namespace Codes.Api.CodeTypes
         }
 
         [HttpPost("/codetypes3")]
-        public async Task<Result<AddCodeTypeResponseDTO>> AddCodeType3([FromBody] CodeTypeDTO codeTypeDTO)
+        public async Task<Result<AddCodeTypeResponseDto>> AddCodeType3([FromBody] CodeTypeDto codeTypeDTO)
         {
             var command = MapCommand(codeTypeDTO);
             var result = await _mediator.Send(command, AppUtilities.CreateCancelationToken());
             return result.Map(MapResponse);
 
-            static AddCodeTypeCommand3 MapCommand(CodeTypeDTO codeTypeDTO)
+            static AddCodeTypeCommand3 MapCommand(CodeTypeDto codeTypeDTO)
             {
                 return new AddCodeTypeCommand3
                 {
@@ -164,9 +148,9 @@ namespace Codes.Api.CodeTypes
                 };
             }
 
-            static AddCodeTypeResponseDTO MapResponse(AddCodeTypeResult3 result)
+            static AddCodeTypeResponseDto MapResponse(AddCodeTypeResult3 result)
             {
-                return new AddCodeTypeResponseDTO
+                return new AddCodeTypeResponseDto
                 {
                     CodeTypeId = result.CodeTypeId
                 };
@@ -174,13 +158,13 @@ namespace Codes.Api.CodeTypes
         }
 
         [HttpPut("{codeTypeId}")]
-        public async Task<ResponseDTOBase> EditCodeType(int codeTypeId, [FromBody] CodeTypeDTO codeTypeDTO)
+        public async Task<Result> EditCodeType(int codeTypeId, [FromBody] CodeTypeDto codeTypeDTO)
         {
             var command = MapCommand(codeTypeId, codeTypeDTO);
             var result = await _mediator.Send(command, AppUtilities.CreateCancelationToken());
-            return MapResponse(result);
+            return result;
 
-            static EditCodeTypeCommand MapCommand(int codeTypeId, CodeTypeDTO codeTypeDTO)
+            static EditCodeTypeCommand MapCommand(int codeTypeId, CodeTypeDto codeTypeDTO)
             {
                 return new EditCodeTypeCommand
                 {
@@ -190,36 +174,20 @@ namespace Codes.Api.CodeTypes
                     Text2 = codeTypeDTO.Text2
                 };
             }
-
-            static ResponseDTOBase MapResponse(ResultBase result)
-            {
-                return new ResponseDTOBase
-                {
-                    Header = result.Header
-                };
-            }
         }
 
         [HttpDelete("{codeTypeId}")]
-        public async Task<ResponseDTOBase> DeleteCodeType(int codeTypeId)
+        public async Task<Result> DeleteCodeType(int codeTypeId)
         {
             var command = MapCommand(codeTypeId);
             var result = await _mediator.Send(command, AppUtilities.CreateCancelationToken());
-            return MapResponse(result);
+            return result;
 
             static DeleteCodeTypeCommand MapCommand(int codeTypeId)
             {
                 return new DeleteCodeTypeCommand
                 {
                     CodeTypeId = codeTypeId
-                };
-            }
-
-            static ResponseDTOBase MapResponse(ResultBase result)
-            {
-                return new ResponseDTOBase
-                {
-                    Header = result.Header
                 };
             }
         }

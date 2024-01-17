@@ -1,7 +1,8 @@
-﻿namespace Core.Application.Models.CQRS
+﻿using Core.Application.Enums;
+
+namespace Core.Application.Models.CQRS
 {
-    public class SearchResult<TResultItem>: ResultBase<SearchResultBody<TResultItem>>
-    {
-    }
-    public record SearchResultBody<TResultItem>(SearchResultMetadata Metadata, TResultItem[] Data);
+    public record SearchResult<TResultItem>(
+        TResultItem[] Data,
+        SearchResultMetadata Metadata);
 }

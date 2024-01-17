@@ -2,12 +2,13 @@
 using Codes.Domain.Entities;
 using Core.Application.Exceptions;
 using Core.Application.Models.CQRS;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Codes.Application.Codes.Commands.EditCode
 {
 
-    public class EditCodeCommand : RequestBase
+    public class EditCodeCommand : IRequest<Result>
     {
         public int CodeId { get; set; }
         public string Value { get; set; } = null!;
@@ -16,7 +17,7 @@ namespace Codes.Application.Codes.Commands.EditCode
         public bool Enabled { get; set; }
         public List<Metadata>? Metadata { get; set; }
 
-        public class EditCodeHandler : RequestHandlerBase<EditCodeCommand>
+        public class EditCodeHandler : IRequestHandler<EditCodeCommand, Result>
         {
             private readonly ICodesDbContext _codesDbContext;
 
@@ -24,12 +25,12 @@ namespace Codes.Application.Codes.Commands.EditCode
             {
                 _codesDbContext = codesDbContext;
             }
-            public override async Task<ResultBase> Handle(EditCodeCommand request, CancellationToken cancellationToken)
+            public async Task<Result> Handle(EditCodeCommand request, CancellationToken cancellationToken)
             {
                 var dbCode = await GetCodeEntity(request.CodeId, cancellationToken);
                 if (dbCode == null)
                 {
-                    return NotFound(x => x.CodeId, "There is no code stored with provided id");
+                    return Result.NotFound<EditCodeCommand>(x => x.CodeId, "There is no code stored with provided id");
                 }
 
                 var dbOtherCodeWithSameValue = await GetCodeEntity(request.CodeId, request.Value, cancellationToken);
@@ -40,7 +41,7 @@ namespace Codes.Application.Codes.Commands.EditCode
                 MapUpdate(dbCode, request);
                 await Persist(dbCode, cancellationToken);
 
-                return Ok();
+                return Result.OK;
             }
 
             private async Task<Code?> GetCodeEntity(int codeId, CancellationToken cancellationToken)

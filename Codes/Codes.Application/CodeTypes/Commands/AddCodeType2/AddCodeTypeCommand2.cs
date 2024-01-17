@@ -1,6 +1,6 @@
 ﻿using Codes.Application.Services.Persistence;
 using Codes.Domain.Entities;
-using Core.Application.Models.CQRS;
+using Core.Application.Exceptions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,7 +12,7 @@ namespace Codes.Application.CodeTypes.Commands.AddCodeType2
         public required string Text { get; set; }
         public string? Text2 { get; set; }
 
-        public class AddCodeTypeHandler2 : RequestHandler<AddCodeTypeCommand2, int>
+        public class AddCodeTypeHandler2 : IRequestHandler<AddCodeTypeCommand2, int>
         {
             private readonly ICodesDbContext _codesDbContext;
 
@@ -20,13 +20,13 @@ namespace Codes.Application.CodeTypes.Commands.AddCodeType2
             {
                 _codesDbContext = codesDbContext;
             }
-            public override async Task<int> Handle(AddCodeTypeCommand2 request, CancellationToken cancellationToken)
+            public async Task<int> Handle(AddCodeTypeCommand2 request, CancellationToken cancellationToken)
             {
                 var dbCodeType = await GetCodeTypeEntity(request.Value, cancellationToken);
-                if (dbCodeType != null)
-                {
-                    ThrowBadRequest(x => x.Value, "There is a code type stored with the same provided value.");
-                }
+                BusinessException.Must(
+                    dbCodeType == null,
+                    "There is a code type stored with the same provided value.");
+
 
                 var codeType = CreateCodeTypeEntity(request);
                 await Persist(codeType, cancellationToken);

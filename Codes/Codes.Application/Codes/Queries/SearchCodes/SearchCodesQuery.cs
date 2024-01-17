@@ -1,7 +1,9 @@
-﻿using Codes.Application.Services.Persistence;
+﻿using Codes.Application.Localization;
+using Codes.Application.Services.Persistence;
 using Codes.Domain.Entities;
 using Core.Application.Models;
 using Core.Application.Models.CQRS;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -14,7 +16,7 @@ namespace Codes.Application.Codes.Queries.SearchCodes
         public string? Text { get; set; }
         public bool? Enabled { get; set; } = true;
 
-        public class SearchCodesHandler : RequestHandlerBase<SearchCodesQuery, SearchResult<Code>>
+        public class SearchCodesHandler : IRequestHandler<SearchCodesQuery, Result<SearchResult<Code>>>
         {
             private readonly ICodesDbContext _codesDbContext;
 
@@ -22,20 +24,29 @@ namespace Codes.Application.Codes.Queries.SearchCodes
             {
                 _codesDbContext = codesDbContext;
             }
-            public override async Task<SearchResult<Code>> Handle(SearchCodesQuery request, CancellationToken cancellationToken)
+            public async Task<Result<SearchResult<Code>>> Handle(SearchCodesQuery request, CancellationToken cancellationToken)
             {
                 var dbCodeType = await GetCodeType(request.CodeTypeValue, cancellationToken);
                 if (dbCodeType == null)
                 {
-                    return NotFound(x => x.CodeTypeValue, "There is no code type stored with provided value");
+                    return Result<SearchResult<Code>>.NotFound<SearchCodesQuery>(x => x.CodeTypeValue, "There is no code type stored with provided value");
                 }
 
                 var query = CreateQuery(request, dbCodeType.CodeTypeId);
+                var resultMetadata = await query.GetResultMetadata(request.PageSize, cancellationToken);
+                
+                if (resultMetadata.TotalPages < request.PageNumber)
+                {
+                    return Result<SearchResult<Code>>.NotFound<SearchCodesQuery>(
+                        x => x.PageNumber!,
+                        Resources.max_page_number.Format(TotalPages => resultMetadata.TotalPages));
+                }
+
                 var result = await query
                     .Paginate(request.PageNumber, request.PageSize)
                     .ToArrayAsync(cancellationToken);
-                var resultMetadata = await query.GetResultMetadata(request.PageSize, cancellationToken);
-                return Ok(MapResult(result, resultMetadata));
+                
+                return Result.Ok(MapResult(result, resultMetadata));
             }
 
 
@@ -81,10 +92,7 @@ namespace Codes.Application.Codes.Queries.SearchCodes
 
             private static SearchResult<Code> MapResult(Code[] data, SearchResultMetadata metadata)
             {
-                return new SearchResult<Code>()
-                {
-                    Body = new SearchResultBody<Code>(metadata, data)
-                };
+                return new SearchResult<Code>(data, metadata);
             }
         }
     }

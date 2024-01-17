@@ -1,4 +1,4 @@
 ﻿namespace Codes.Api.Codes.DTOs
 {
-    public record CodeMetadataDTO(string Key, string Value);
+    public record CodeMetadataDto(string Key, string Value);
 }

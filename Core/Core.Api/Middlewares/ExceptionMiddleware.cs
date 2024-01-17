@@ -54,13 +54,11 @@ namespace Core.Api.Middlewares
             // Create a custom error response
             var errorResponse = new
             {
-                Header = new
-                {
-                    ErrorCode = context.Response.StatusCode,
-                    ErrorMessage = exp.Message,
-                    exp.Target,
-                    exp.Errors
-                }
+                ErrorCode = context.Response.StatusCode,
+                ErrorMessage = exp.Message,
+                exp.Target,
+                exp.Errors
+
             };
              
             var jsonResponse = JsonConvert.SerializeObject(errorResponse,
@@ -86,11 +84,8 @@ namespace Core.Api.Middlewares
             // Create a custom error response
             var errorResponse = new
             {
-                Header = new
-                {
-                    ErrorCode = context.Response.StatusCode,
-                    ErrorMessage = exp.Message
-                }
+                ErrorCode = context.Response.StatusCode,
+                ErrorMessage = exp.Message
             };
 
             var jsonResponse = JsonConvert.SerializeObject(errorResponse,
@@ -116,11 +111,8 @@ namespace Core.Api.Middlewares
             // Create a custom error response
             var errorResponse = new
             {
-                Header = new
-                {
-                    ErrorCode = context.Response.StatusCode,
-                    ErrorMessage = exp.Message
-                }
+                ErrorCode = context.Response.StatusCode,
+                ErrorMessage = exp.Message
             };
 
             var jsonResponse = JsonConvert.SerializeObject(errorResponse,

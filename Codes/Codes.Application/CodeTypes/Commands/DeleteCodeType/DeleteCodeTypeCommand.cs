@@ -1,14 +1,15 @@
 ﻿using Codes.Application.Services.Persistence;
 using Codes.Domain.Entities;
 using Core.Application.Models.CQRS;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Codes.Application.CodeTypes.Commands.DeleteCodeType
 {
-    public class DeleteCodeTypeCommand : RequestBase
+    public class DeleteCodeTypeCommand : IRequest<Result>
     {
         public int CodeTypeId { get; set; }
-        public class DeleteCodeTypeHandler : RequestHandlerBase<DeleteCodeTypeCommand>
+        public class DeleteCodeTypeHandler : IRequestHandler<DeleteCodeTypeCommand,Result>
         {
             private readonly ICodesDbContext _codesDbContext;
 
@@ -16,16 +17,16 @@ namespace Codes.Application.CodeTypes.Commands.DeleteCodeType
             {
                 _codesDbContext = codesDbContext;
             }
-            public override async Task<ResultBase> Handle(DeleteCodeTypeCommand request, CancellationToken cancellationToken)
+            public async Task<Result> Handle(DeleteCodeTypeCommand request, CancellationToken cancellationToken)
             {
                 var dbCodeType = await GetCodeTypeEntity(request.CodeTypeId, cancellationToken);
                 if (dbCodeType == null)
                 {
-                    return NotFound(x => x.CodeTypeId, "There is no code type stored with provided id");
+                    return Result.NotFound<DeleteCodeTypeCommand>(x => x.CodeTypeId, "There is no code type stored with provided id");
                 }
 
                 await Persist(dbCodeType, cancellationToken);
-                return Ok();
+                return Result.OK;
             }
 
             private Task<CodeType?> GetCodeTypeEntity(int codeTypeId, CancellationToken cancellationToken)

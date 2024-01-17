@@ -3,6 +3,7 @@ using Audit.Domain.Entities;
 using Audit.Domain.Enums;
 using Core.Application.Models;
 using Core.Application.Models.CQRS;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Audit.Application.Audit.Queries.SearchAuditLog
@@ -14,7 +15,7 @@ namespace Audit.Application.Audit.Queries.SearchAuditLog
         public string? EventEntityId { get; set; }
     }
 
-    public class Handler : RequestHandlerBase<SearchAuditLogQuery, SearchResult<AuditLogItem>>
+    public class Handler : IRequestHandler<SearchAuditLogQuery, Result<SearchResult<AuditLogItem>>>
     {
         private readonly IAuditDbContext _auditDbContext;
 
@@ -22,7 +23,7 @@ namespace Audit.Application.Audit.Queries.SearchAuditLog
         {
             _auditDbContext = auditDbContext;
         }
-        public override async Task<SearchResult<AuditLogItem>> Handle(SearchAuditLogQuery request, CancellationToken cancellationToken)
+        public async Task<Result<SearchResult<AuditLogItem>>> Handle(SearchAuditLogQuery request, CancellationToken cancellationToken)
         {
             var query = CreateQuery(request);
             var metadata = await query.GetResultMetadata(request.PageSize, cancellationToken);
@@ -30,7 +31,7 @@ namespace Audit.Application.Audit.Queries.SearchAuditLog
                 .OrderByDescending(x => x.CreatedDate)
                 .Paginate(request.PageNumber, request.PageSize)
                 .ToArrayAsync(cancellationToken);
-            return Ok(MapResult(data, metadata));
+            return Result.Ok(MapResult(data, metadata));
         }
 
         private IQueryable<AuditLog> CreateQuery(SearchAuditLogQuery request)
@@ -57,29 +58,21 @@ namespace Audit.Application.Audit.Queries.SearchAuditLog
             return query;
         }
 
+
+
         private static SearchResult<AuditLogItem> MapResult(AuditLog[] data, SearchResultMetadata metadata)
         {
-            return new SearchResult<AuditLogItem>()
-            {
-                Body = new SearchResultBody<AuditLogItem>(
-                    metadata,
-                    data.Select(x => new AuditLogItem(
-                        x.AuditLogId,
-                        x.CreatedDate,
-                        x.CreatedByUserId,
-                        AppUtilities.Localize(x.Service.Text, x.Service.Text2),
-                        AppUtilities.Localize(x.Event.Text, x.Event.Text2),
-                        x.EventEntityId))
-                    .ToArray())
-            };
+            return new SearchResult<AuditLogItem>(
+                data
+                .Select(x => new AuditLogItem(
+                    AuditLogId: x.AuditLogId,
+                    CreatedDate: x.CreatedDate,
+                    CreatedByUserId: x.CreatedByUserId,
+                    ServiceText: AppUtilities.Localize(x.Service.Text, x.Service.Text2),
+                    EventText: AppUtilities.Localize(x.Event.Text, x.Event.Text2),
+                    EventEntityId: x.EventEntityId
+                )).ToArray(),
+                metadata);
         }
     }
-
-    public record AuditLogItem(
-        int AuditLogId,
-        DateTime CreatedDate,
-        string CreatedByUserId,
-        string ServiceText,
-        string EventText,
-        string EventEntityId);
 }

@@ -6,8 +6,8 @@ using MediatR;
 namespace Core.Application.Middlewares
 {
     public class ValidationPipeline<TRequest, TResult> : IPipelineBehavior<TRequest, TResult>
-        where TRequest : notnull, IRequestExtended
-        where TResult : ResultBase, new()
+        where TRequest : notnull
+        where TResult : Result, new()
     {
         private readonly IEnumerable<IValidator<TRequest>> _validators;
 
@@ -31,14 +31,13 @@ namespace Core.Application.Middlewares
             {
                 var validationResult = new TResult()
                 {
-                    Header = new ResultHeader
-                    {
-                        StatusCode = ResultCode.BadRequest,
-                        ErrorMessage = "Request validation failed",
-                        Errors = failures
-                            .Select(x => new ResultError(x.ErrorCode, x.ErrorMessage, x.PropertyName))
-                            .ToList()
-                    }
+
+                    Status = ResultStatus.BadRequest,
+                    ErrorMessage = "Request validation failed",
+                    Errors = failures
+                        .Select(x => new Error(x.ErrorCode, x.ErrorMessage, x.PropertyName))
+                        .ToList()
+
                 };
                 return validationResult;
             }

@@ -1,22 +1,17 @@
 ﻿
 using Core.Application.Exceptions;
 using Core.Application.Models.CQRS;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq.Expressions;
 using System.Security.Claims;
+using System.Text;
 
 namespace Core.Application.Models
 {
     public static class AppUtilities
     {
-        public static bool IsArabic(string language)
-        {
-            return string.IsNullOrWhiteSpace(language) || language.ToLower().IndexOfAny(["ar", "arabic"]) != -1;
-        }
-
         public static int IndexOfAny(this string input, string[] searchStrings)
         {
             var indices = searchStrings.Select(s => input.IndexOf(s)).Where(i => i != -1);
@@ -36,8 +31,7 @@ namespace Core.Application.Models
             var pn = pageNumber ?? AppConstants.PageNumber;
 
             BusinessException.ThrowIfNull(query, "query can't be null");
-            query.Skip(ps * (pn - 1)).Take(ps);
-            return query;
+            return query.Skip(ps * (pn - 1)).Take(ps);
         }
 
         public static async Task<SearchResultMetadata> GetResultMetadata<TModel>(
@@ -57,7 +51,7 @@ namespace Core.Application.Models
 
         public static ClaimsPrincipal GetUserByJwtToken(string jwtToken)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(jwtToken, "Jwt token is missing");
+            ArgumentException.ThrowIfNullOrWhiteSpace(jwtToken);
 
             var validationParameters = GetValidationParameters(); // Set your validation parameters
 
@@ -77,20 +71,47 @@ namespace Core.Application.Models
                 };
             }
         }
-    
+
         public static string Localize(string text, string? text2)
         {
-            return AppConstants.CurrentLanguageIsArabic ? text : text2 ?? text;
+            return IsCurrentLanguageArabic() ? text : text2 ?? text;
+        }
+
+        public static bool IsCurrentLanguageArabic()
+        {
+            var language = Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName;
+            return 0 == string.Compare(language, "ar", true);
         }
 
         internal static string GetFieldName<TRequest>(Expression<Func<TRequest, object>> field)
         {
-            return field.Body is MemberExpression memberExpression
-                ? memberExpression.Member.Name
-                : field.Body is UnaryExpression unaryExpression &&
-                                     unaryExpression.Operand is MemberExpression innerMemberExpression
-                    ? innerMemberExpression.Member.Name
-                    : throw new ArgumentException("Expression is not a valid member access expression.", nameof(field));
+            if (field.Body is MemberExpression memberExpression)
+            {
+                return memberExpression.Member.Name;
+            }
+            else
+            {
+                return field.Body is UnaryExpression unaryExpression &&
+                    unaryExpression.Operand is MemberExpression innerMemberExpression
+                ? innerMemberExpression.Member.Name
+                : throw new ArgumentException("Expression is not a valid member access expression.", nameof(field));
+            }
+        }
+
+
+        public static string Format(this string str, params Expression<Func<string, object>>[] args)
+        {
+            var parameters = args.ToDictionary(
+                e => string.Format("{{{0}}}", e.Parameters[0].Name), 
+                e => e.Compile()(e.Parameters[0].Name));
+
+            var sb = new StringBuilder(str);
+            foreach (var kv in parameters)
+            {
+                sb.Replace(kv.Key, kv.Value != null ? kv.Value.ToString() : "");
+            }
+
+            return sb.ToString();
         }
     }
 }

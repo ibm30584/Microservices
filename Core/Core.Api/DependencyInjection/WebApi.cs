@@ -38,9 +38,10 @@ namespace Core.Api.DependencyInjection
             }
 
             services.AddHttpContextAccessor();
-            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(HttpHeaderBinderPipeline<,>));
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CQRSPipeline<,>));
 
-            AppConstants.CurrentLanguage = webApiOptions.DefaultLanguage;
+            AppConstants.DefaultLanguage = webApiOptions.DefaultLanguage;
+
             return logger;
         }
 

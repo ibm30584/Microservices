@@ -2,7 +2,7 @@
 
 namespace Codes.Api.CodeTypes.DTOs
 {
-    public class SearchCodeTypesRequestDTO : SearchRequestDTOBase
+    public class SearchCodeTypesRequestDto : SearchRequestDtoBase
     {
         public string? Value { get; set; }
         public string? Text { get; set; }

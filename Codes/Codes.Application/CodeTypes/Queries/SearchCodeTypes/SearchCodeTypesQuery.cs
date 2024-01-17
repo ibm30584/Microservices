@@ -2,6 +2,7 @@
 using Codes.Domain.Entities;
 using Core.Application.Models;
 using Core.Application.Models.CQRS;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Codes.Application.CodeTypes.Queries.SearchCodeTypes
@@ -11,7 +12,7 @@ namespace Codes.Application.CodeTypes.Queries.SearchCodeTypes
         public string? Value { get; set; }
         public string? Text { get; set; }
 
-        public class SearchCodeTypesHandler : RequestHandlerBase<SearchCodeTypesQuery, SearchResult<CodeType>>
+        public class SearchCodeTypesHandler : IRequestHandler<SearchCodeTypesQuery, Result<SearchResult<CodeType>>>
         {
             private readonly ICodesDbContext _codesDbContext;
 
@@ -19,14 +20,14 @@ namespace Codes.Application.CodeTypes.Queries.SearchCodeTypes
             {
                 _codesDbContext = codesDbContext;
             }
-            public override async Task<SearchResult<CodeType>> Handle(SearchCodeTypesQuery request, CancellationToken cancellationToken)
+            public async Task<Result<SearchResult<CodeType>>> Handle(SearchCodeTypesQuery request, CancellationToken cancellationToken)
             {
                 var query = CreateQuery(request);
                 var data = await query
                     .Paginate(request.PageNumber, request.PageSize)
                     .ToArrayAsync(cancellationToken);
                 var metadata = await query.GetResultMetadata(request.PageSize, cancellationToken);
-                return Ok(MapResult(data, metadata));
+                return Result.Ok(MapResult(data, metadata));
             }
 
             private IQueryable<CodeType> CreateQuery(SearchCodeTypesQuery request)
@@ -50,10 +51,7 @@ namespace Codes.Application.CodeTypes.Queries.SearchCodeTypes
 
             private static SearchResult<CodeType> MapResult(CodeType[] data, SearchResultMetadata metadata)
             {
-                return new SearchResult<CodeType>()
-                {
-                    Body = new SearchResultBody<CodeType>(metadata, data)
-                };
+                return new SearchResult<CodeType>(data, metadata);
             }
         }
     }

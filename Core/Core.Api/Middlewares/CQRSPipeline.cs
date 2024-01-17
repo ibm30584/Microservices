@@ -8,13 +8,12 @@ using System.Globalization;
 
 namespace Core.Api.Middlewares
 {
-    public class HttpHeaderBinderPipeline<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-        where TRequest : notnull, IRequestExtended
-        where TResponse : ResultBase
+    public class CQRSPipeline<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+         where TRequest : notnull
     {
         private readonly HttpContext _httpContext;
 
-        public HttpHeaderBinderPipeline(
+        public CQRSPipeline(
             IHttpContextAccessor httpContextAccessor)
         {
             StartupException.ThrowIfNull(httpContextAccessor);
@@ -26,41 +25,24 @@ namespace Core.Api.Middlewares
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
             var language = GetLanguage();
-            request.Header = GetRequestHeader(language);
             ApplyCulture(language);
 
             var result = await next();
 
-            BusinessException.ThrowIfNull(result, "Result must not be null");
-            BusinessException.ThrowIfNull(result.Header, "Result's header must not be null");
-            if (result.Header.StatusCode != ResultCode.Ok)
+
+            if (result is Result resultInstance && resultInstance.Status != ResultStatus.Ok)
             {
-                _httpContext.Response.StatusCode = (int)result.Header.StatusCode;
+                _httpContext.Response.StatusCode = (int)resultInstance.Status;
             }
             _httpContext.Response.Headers["correlationId"] = _httpContext.TraceIdentifier;
 
             return result;
         }
 
-        private RequestHeader GetRequestHeader(string language)
-        {
-            return new RequestHeader
-            {
-                CorrelationId = GetCorrelationId(_httpContext),
-                User = _httpContext.User,
-                Language = language == AppConstants.ArabicLanguage ? AppLanguage.Arabic : AppLanguage.English,
-            };
-        }
-
-        private string GetCorrelationId(HttpContext? httpContext)
-        {
-            return httpContext?.TraceIdentifier ?? Guid.NewGuid().ToString();
-        }
-
         private string GetLanguage()
         {
             var request = _httpContext.Request;
-            var culture = request.Headers["Accept-Language"].FirstOrDefault()
+            var culture = request.Headers.AcceptLanguage.FirstOrDefault()
                         ?? request.Query["language"].ToString()
                         ?? AppConstants.DefaultLanguage;
 
@@ -76,7 +58,8 @@ namespace Core.Api.Middlewares
                 return;
             }
 
-            if (Thread.CurrentThread.CurrentUICulture.Name.ToLower() == culture.ToLower())
+            var currentUICulture = Thread.CurrentThread.CurrentUICulture.Name;
+            if (currentUICulture.Equals(culture, StringComparison.CurrentCultureIgnoreCase))
             {
                 return;
             }

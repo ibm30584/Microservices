@@ -3,11 +3,12 @@ using Codes.Application.Services.Audit;
 using Codes.Application.Services.Persistence;
 using Codes.Domain.Entities;
 using Core.Application.Models.CQRS;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Codes.Application.Codes.Commands.AddCode
 {
-    public class AddCodeCommand : RequestBase<ResultBase<AddCodeResult>>
+    public class AddCodeCommand : IRequest<Result<AddCodeResult>>
     {
         public string CodeType { get; set; } = null!;
         public string Value { get; set; } = null!;
@@ -16,7 +17,7 @@ namespace Codes.Application.Codes.Commands.AddCode
         public bool Enabled { get; set; }
         public List<Metadata>? Metadata { get; set; } = [];
 
-        public class AddCodeHandler : RequestHandlerBase<AddCodeCommand, ResultBase<AddCodeResult>>
+        public class AddCodeHandler : IRequestHandler<AddCodeCommand, Result<AddCodeResult>>
         {
             private readonly ICodesDbContext _codesDbContext;
             private readonly IAuditService _auditService;
@@ -28,12 +29,12 @@ namespace Codes.Application.Codes.Commands.AddCode
                 _codesDbContext = codesDbContext;
                 _auditService = auditService;
             }
-            public override async Task<ResultBase<AddCodeResult>> Handle(AddCodeCommand request, CancellationToken cancellationToken)
+            public async Task<Result<AddCodeResult>> Handle(AddCodeCommand request, CancellationToken cancellationToken)
             {
                 var dbCode = await GetCodeEntity(request.Value, cancellationToken);
                 if (dbCode != null)
                 {
-                    return BadRequest(x => x.Value, "There is an existing code with the same value");
+                    return Result<AddCodeResult>.BadRequest<AddCodeCommand>(x => x.Value, "There is an existing code with the same value");
                 }
 
                 var codeTypeId = await GetCodeTypeId(request.CodeType, cancellationToken);
@@ -43,9 +44,9 @@ namespace Codes.Application.Codes.Commands.AddCode
                 var auditLogMessage = CreateAuditMessage(code);
                 await Audit(auditLogMessage);
 
-                return Ok(new AddCodeResult
+                return Result.Ok(new AddCodeResult
                 {
-                    CodeId = codeTypeId,
+                    CodeId = code.CodeId,
                 });
             }
 

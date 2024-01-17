@@ -4,12 +4,11 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Core.Application.Exceptions
 {
-    [Serializable]
     public class BusinessException : Exception
     {
-        public ResultCode ErrorCode { get; set; } = ResultCode.BadRequest;
+        public ResultStatus ErrorCode { get; set; } = ResultStatus.BadRequest;
         public string? Target { get; set; }
-        public List<ResultError>? Errors { get; set; }
+        public List<Error>? Errors { get; set; }
 
         public BusinessException() { }
         public BusinessException(string message) : base(message) { }
@@ -21,7 +20,7 @@ namespace Core.Application.Exceptions
             {
                 throw new BusinessException(message)
                 {
-                    ErrorCode = ResultCode.NotFound
+                    ErrorCode = ResultStatus.NotFound
                 };
             }
         }

@@ -1,6 +1,6 @@
 ﻿namespace Codes.Api.Codes.DTOs
 {
-    public record CodeItemDTO(
+    public record CodeItemDto(
         int CodeId,
         string Value,
         string Text,

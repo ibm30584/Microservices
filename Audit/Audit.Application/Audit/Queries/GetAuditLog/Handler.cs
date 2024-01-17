@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Audit.Application.Audit.Queries.GetAuditLog
 {
-    public class Handler : IRequestHandler<GetAuditLogQuery, AuditLogResult>
+    public class Handler : IRequestHandler<GetAuditLogQuery, Result<AuditLogResult>>
     {
         private readonly IAuditDbContext _auditDbContext;
 
@@ -14,14 +14,18 @@ namespace Audit.Application.Audit.Queries.GetAuditLog
         {
             _auditDbContext = auditDbContext;
         }
-        public async Task<AuditLogResult> Handle(GetAuditLogQuery request, CancellationToken cancellationToken)
+        public async Task<Result<AuditLogResult>> Handle(GetAuditLogQuery request, CancellationToken cancellationToken)
         {
-            var dbAudit = await GetAuditEntity(request, cancellationToken)
-                    ?? throw this.NotFound(
+            var dbAudit = await GetAuditEntity(request, cancellationToken);
+            if (dbAudit == null)
+            {
+                return Result<AuditLogResult>.NotFound<GetAuditLogQuery>(
                         x => x.AuditLogId,
                         "There is no audit log stored with this id");
+            }
+
             var result = MapResult(dbAudit);
-            return result;
+            return Result.Ok(result);
         }
 
         private Task<AuditLog?> GetAuditEntity(GetAuditLogQuery request, CancellationToken cancellationToken)
